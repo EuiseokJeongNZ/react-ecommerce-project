@@ -1,7 +1,6 @@
 # 🎧 X-Beat | React eCommerce Web App
 
-[![React](https://img.shields.io/badge/React-18.0-blue?logo=react)](https://react.dev/)  
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](./LICENSE)
+[![React](https://img.shields.io/badge/React-18.0-blue?logo=react)](https://react.dev/)
 
 > 🛒 Protein Store eCommerce Website built with **React JS** and **Context API** for state management.  
 > Fully responsive, modern UI with dark mode support and multiple pages.
