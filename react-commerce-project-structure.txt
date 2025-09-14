@@ -1,0 +1,70 @@
+react-ecommerce-project/
+├─ client/
+│  ├─ public/
+│  │  ├─ images/
+│  │  │  └─ products/
+│  │  ├─ _redirects
+│  │  ├─ favicon.ico
+│  │  ├─ index.html
+│  │  ├─ logo192.png
+│  │  ├─ logo512.png
+│  │  ├─ manifest.json
+│  │  └─ robots.txt
+│  │
+│  ├─ src/
+│  │  ├─ components/
+│  │  │  ├─ cart/
+│  │  │  ├─ common/
+│  │  │  ├─ filters/
+│  │  │  ├─ form/
+│  │  │  ├─ product/
+│  │  │  └─ sliders/
+│  │  │
+│  │  ├─ contexts/
+│  │  │  ├─ cart/
+│  │  │  ├─ common/
+│  │  │  └─ filters/
+│  │  │
+│  │  ├─ data/
+│  │  │  ├─ filterBarData.js
+│  │  │  ├─ footerData.js
+│  │  │  ├─ headerData.js
+│  │  │  ├─ productsData.js
+│  │  │  ├─ reviewsData.js
+│  │  │  └─ servicesData.js
+│  │  │
+│  │  ├─ helpers/
+│  │  │  └─ utils.js
+│  │  ├─ hooks/
+│  │  │  ├─ useActive.js
+│  │  │  ├─ useDocTitle.js
+│  │  │  ├─ useForm.js
+│  │  │  ├─ useOutsideClose.js
+│  │  │  ├─ useScrollDisable.js
+│  │  │  └─ useScrollRestore.js
+│  │  │
+│  │  ├─ pages/
+│  │  │  ├─ AllProducts.js
+│  │  │  ├─ Cart.js
+│  │  │  ├─ ErrorPage.js
+│  │  │  ├─ Home.js
+│  │  │  └─ ProductDetails.js
+│  │  │
+│  │  ├─ routes/
+│  │  │  └─ RouterRoutes.js
+│  │  ├─ styles/
+│  │  │  ├─ partials/
+│  │  │  └─ style.scss
+│  │  │
+│  │  ├─ App.js
+│  │  ├─ App.test.js
+│  │  ├─ index.js
+│  │  ├─ reportWebVitals.js
+│  │  └─ setupTests.js
+│  │
+│  ├─ package.json
+│  └─ README.md
+│
+├─ server/
+│
+└─ react-commerce-project-structure.txt
