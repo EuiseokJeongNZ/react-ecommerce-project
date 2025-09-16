@@ -68,3 +68,18 @@ react-ecommerce-project/
 ├─ server/
 │
 └─ react-commerce-project-structure.txt
+
+
+
+
+| 영역           | 교체/유지 | 사용 기술                                                          |
+| ------------ | ----- | -------------------------------------------------------------- |
+| **프론트엔드**    | 유지    | HTML, CSS3, JavaScript, React                                  |
+| **백엔드**      | ✅ 교체  | Python + FastAPI <br>(또는 필요 시 Django REST Framework)           |
+| **ORM & DB** | ✅ 교체  | SQLAlchemy + Alembic (마이그레이션) <br>DB: MariaDB (AWS RDS 그대로 유지) |
+| **검색 / 쿼리**  | ✅ 교체  | SQLAlchemy ORM 쿼리 + Pydantic 모델 검증                             |
+| **보안 / 인증**  | ✅ 교체  | PyJWT (JWT 발급/검증), Passlib (비밀번호 암호화)                          |
+| **배포 / 인프라** | 유지    | Docker, Docker Compose, AWS EC2, RDS, Nginx, GitHub            |
+| **환경 설정**    | ✅ 교체  | Pydantic + .env 파일 기반 설정 관리 (예: python-dotenv)                 |
+| **테스트**      | ✅ 교체  | pytest, httpx (API 테스트)                                        |
+
