@@ -1,4 +1,4 @@
-# 🎧 X-Beat | React eCommerce Web App
+# PurePro | React eCommerce Web App
 
 [![React](https://img.shields.io/badge/React-18.0-blue?logo=react)](https://react.dev/)
 
