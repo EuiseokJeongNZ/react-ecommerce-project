@@ -74,7 +74,7 @@ const productsData = [
 
         finalPrice: 29,
         originalPrice: 39,
-        quantity: 12,
+        quantity: 1,
         ratings: 1234,
         rateCount: 5,
         path: "/product-details/",
@@ -100,7 +100,7 @@ const productsData = [
 
         finalPrice: 59,
         originalPrice: 79,
-        quantity: 12,
+        quantity: 1,
         ratings: 1234,
         rateCount: 5,
         path: "/product-details/",
