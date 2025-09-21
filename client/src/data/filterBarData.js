@@ -56,7 +56,7 @@ export const categoryMenu = [
         checked: false,
     },
     {
-        id: 99,
+        id: 4,
         label: "Protein Bars",
         checked: false,
     },

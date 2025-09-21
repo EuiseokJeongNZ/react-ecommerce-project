@@ -9,9 +9,17 @@
 
  					-> pip install -r requirements.txt
 
-
+python manage.py createsuperuser
 Username (leave blank to use 'dmltj'): euiseok_jeong
 Email address: euiseokjeongnz@gmail.com
 Password: dmltjr5050
 
 oepn server commend: python manage.py runserver 8000
+
+pip freeze > requirements.txt
+pip install -r requirements.txt
+
+MariaDB 서버 켜져있는지 확인 -> mysql -u root -p -h 127.0.0.1 -P 3306
+
+USE myshop;
+SHOW TABLES;

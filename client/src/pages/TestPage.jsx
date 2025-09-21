@@ -22,7 +22,7 @@ export default function TestPage() {
             )}
             <h3>{p.title}</h3>
             <p>{p.description}</p>
-            <p>{p.price} 원</p>
+            <p>{p.price} NZD</p>
           </div>
         ))}
       </div>
