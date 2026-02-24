@@ -1,7 +1,20 @@
-from rest_framework import generics
-from .models import User
-from .serializers import UserSerializer
+from django.http import JsonResponse
+from .models import Product
 
-class UserListView(generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+def health(request):
+    return JsonResponse({"ok": True})
+    
+def product_list(request):
+    products = list(Product.objects.values(
+        "id",
+        "title",
+        "tag",
+        "tagline",
+        "final_price",
+        "original_price",
+        "category",
+        "info",
+        "rate_count",
+        "is_active",
+    ))
+    return JsonResponse({"products": products})

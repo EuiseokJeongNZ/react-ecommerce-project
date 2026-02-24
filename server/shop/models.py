@@ -1,55 +1,55 @@
-# models.py
-
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-class MyUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, **extra):
-        if not username:
-            raise ValueError("Username is required")
-        if not email:
-            raise ValueError("Email is required")
-        email = self.normalize_email(email)
-        user = self.model(username=username, email=email, **extra)
-        if password:
-            user.set_password(password)
-        else:
-            user.set_unusable_password()
-        user.save(using=self._db)
-        return user
 
-    def create_superuser(self, username, email, password=None, **extra):
-        extra.setdefault("is_staff", True)
-        extra.setdefault("is_superuser", True)
-        extra.setdefault("is_active", True)
-        return self.create_user(username, email, password, **extra)
+class Product(models.Model):
 
-class User(AbstractBaseUser):  # ← PermissionsMixin 제거
-    id           = models.AutoField(primary_key=True)
-    username     = models.CharField(max_length=150, unique=True)
-    email        = models.EmailField(unique=True)
-    password     = models.CharField(max_length=255)
-    is_active    = models.BooleanField(default=True)
-    is_staff     = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-    last_login   = models.DateTimeField(null=True, blank=True)
-    date_joined  = models.DateTimeField(auto_now_add=True)
+    TAG_CHOICES = (
+        ("hero-product", "Hero Product"),
+        ("featured-product", "Featured Product"),
+        ("normal", "Normal Product"),
+    )
 
-    USERNAME_FIELD  = "username"
-    REQUIRED_FIELDS = ["email"]
+    tag = models.CharField(
+        max_length=20,
+        choices=TAG_CHOICES,
+        default="normal"
+    )
 
-    objects = MyUserManager()
+    tagline = models.CharField(max_length=255, blank=True)
 
-    class Meta:
-        db_table = "users"
-        managed = False
+    brand = models.CharField(max_length=100, blank=True)
+    title = models.CharField(max_length=255)
+    info = models.TextField(blank=True)
+
+    category = models.CharField(max_length=100)
+    flavor = models.CharField(max_length=100, blank=True)
+
+    weight = models.CharField(max_length=100, blank=True)
+    serve = models.CharField(max_length=100, blank=True)
+
+    final_price = models.DecimalField(max_digits=10, decimal_places=2)
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    stock = models.IntegerField(default=0)
+
+    ratings = models.IntegerField(default=0)
+    rate_count = models.FloatField(default=5.0)
+
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.username
+        return self.title
 
-    # 권한 체크를 아주 단순화(permissions 시스템 안 쓸 것이므로)
-    def has_perm(self, perm, obj=None):
-        return self.is_superuser or self.is_staff
 
-    def has_module_perms(self, app_label):
-        return self.is_superuser or self.is_staff
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+    image = models.ImageField(upload_to="products/")
+
+    def __str__(self):
+        return f"{self.product.title} Image"

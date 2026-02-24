@@ -1,32 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BsArrowRight } from 'react-icons/bs';
 import useActive from '../../hooks/useActive';
-import productsData from '../../data/productsData';
+// import productsData from '../../data/productsData'; // dummy datas from productsDat.js
 import ProductCard from './ProductCard';
 
 
-const TopProducts = () => {
+const TopProducts = ({ products = [] }) => {
 
-    const [products, setProducts] = useState(productsData);
+    // const [products, setProducts] = useState(productsData);
+    const [filteredProducts, setFilteredProducts] = useState(products);
     const { activeClass, handleActive } = useActive(0);
 
     // making a unique set of product's category
-    const productsCategory = [
-        'All',
-        ...new Set(productsData.map(item => item.category))
-    ];
+    // const productsCategory = [
+    //     'All',
+    //     ...new Set(productsData.map(item => item.category))
+    // ];
 
     // handling product's filtering
+    // const handleProducts = (category, i) => {
+    //     if (category === 'All') {
+    //         setProducts(productsData);
+    //         handleActive(i);
+    //         return;
+    //     }
+
+    //     const filteredProducts = productsData.filter(item => item.category === category);
+    //     setProducts(filteredProducts);
+    //     handleActive(i);
+    // };
+
+    React.useEffect(() => {
+    setFilteredProducts(products);
+    }, [products]);
+
+    const productsCategory = useMemo(() => {
+        return ['All', ...new Set(products.map((item) => item.category).filter(Boolean))];
+    }, [products]);
+
     const handleProducts = (category, i) => {
         if (category === 'All') {
-            setProducts(productsData);
+            setFilteredProducts(products);
             handleActive(i);
             return;
         }
 
-        const filteredProducts = productsData.filter(item => item.category === category);
-        setProducts(filteredProducts);
+        const filtered = products.filter((item) => item.category === category);
+        setFilteredProducts(filtered);
         handleActive(i);
     };
 
@@ -50,10 +71,18 @@ const TopProducts = () => {
             </div>
             <div className="wrapper products_wrapper">
                 {
-                    products.slice(0, 11).map(item => (
+                    filteredProducts.slice(0, 11).map((item) => (
                         <ProductCard
-                            key={item.id}
-                            {...item}
+                        key={item.id}
+                        id={item.id}
+                        images={item.images || ["/images/placeholder.png"]}
+                        title={item.title}
+                        info={item.info}
+                        category={item.category}
+                        finalPrice={Number(item.final_price)}
+                        originalPrice={Number(item.original_price ?? item.final_price)}
+                        rateCount={Math.max(0, Math.min(5, Math.round(Number(item.rate_count ?? 5))))}
+                        path="/product-details/"
                         />
                     ))
                 }

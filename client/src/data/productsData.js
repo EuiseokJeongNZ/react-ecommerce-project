@@ -1,9 +1,9 @@
 const productsData = [
     {
         id: 1,
-        tag: "hero-product",
-        tagline: "Fuel your body with clean protein every day.",
-        heroImage: "/images/products/optimum-whey-protein-choco-1.png",
+        tag: "hero-product", 
+        tagline: "Fuel your body with clean protein every day.", 
+        heroImage: "/images/products/optimum-whey-protein-choco-1.png", 
         images: [
             "/images/products/optimum-whey-protein-choco-1.png",
             "/images/products/optimum-whey-protein-choco-2.png",
@@ -11,21 +11,21 @@ const productsData = [
             "/images/products/optimum-whey-protein-choco-4.png",
         ],
         
-        brand: "Optimum Nutrition",
-        title: "Gold Standard 100% Whey Protein Powder",
-        info: "High-quality whey protein powder with rich chocolate flavor",
-        category: "Whey Protein",
-        flavor: "Chocolate",
+        brand: "Optimum Nutrition", 
+        title: "Gold Standard 100% Whey Protein Powder", 
+        info: "High-quality whey protein powder with rich chocolate flavor", 
+        category: "Whey Protein", 
+        flavor: "Chocolate", 
 
-        weight: "2 lb (907g)",
-        serve: "30.4g (1 scoop)",
+        weight: "2 lb (907g)", 
+        serve: "30.4g (1 scoop)", 
 
-        finalPrice: 99,
-        originalPrice: 119,
-        quantity: 1,
-        ratings: 1234,
-        rateCount: 5,
-        path: "/product-details/",
+        finalPrice: 99, 
+        originalPrice: 119, 
+        quantity: 1, 
+        ratings: 1234,  
+        rateCount: 5, 
+        path: "/product-details/", 
     },
     {
         id: 2,

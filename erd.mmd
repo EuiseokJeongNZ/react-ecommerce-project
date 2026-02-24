@@ -1,0 +1,12 @@
+flowchart TB
+
+    User --> React
+
+    React -->|API Call| Django
+
+    Django --> DB[(Database)]
+    Django --> Payment[Payment Gateway]
+    Django --> Storage[Cloud Storage for Product Images]
+    Django --> Auth[JWT/Auth System]
+
+    Payment --> Bank[(External Payment Provider)]
