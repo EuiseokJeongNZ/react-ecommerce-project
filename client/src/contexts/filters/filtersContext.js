@@ -1,198 +1,215 @@
 import { createContext, useEffect, useReducer } from 'react';
-import productsData from '../../data/productsData';
 import { brandsMenu, categoryMenu } from '../../data/filterBarData';
 import filtersReducer from './filtersReducer';
 
-// Filters-Context
 const filtersContext = createContext();
 
+const API_BASE = 'http://127.0.0.1:8000';
+const PRODUCTS_ENDPOINT = `${API_BASE}/api/products/`;
 
-// Initial State
+// ProductCard가 기대하는 기본 path (네 라우터에 맞게 필요하면 수정)
+const DEFAULT_PRODUCT_PATH = '/product-details/';
+
 const initialState = {
-    allProducts: [],
-    sortedValue: null,
-    updatedBrandsMenu: brandsMenu,
-    updatedCategoryMenu: categoryMenu,
-    selectedPrice: {
-        price: 0,
-        minPrice: 0,
-        maxPrice: 0
-    },
-    mobFilterBar: {
-        isMobSortVisible: false,
-        isMobFilterVisible: false,
-    },
+  products: [],
+  allProducts: [],
+  sortedValue: null,
+  updatedBrandsMenu: brandsMenu,
+  updatedCategoryMenu: categoryMenu,
+  selectedPrice: {
+    price: 0,
+    minPrice: 0,
+    maxPrice: 0,
+  },
+  mobFilterBar: {
+    isMobSortVisible: false,
+    isMobFilterVisible: false,
+  },
+  loading: false,
+  error: null,
 };
 
-
-// Filters-Provider Component
 const FiltersProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(filtersReducer, initialState);
 
-    const [state, dispatch] = useReducer(filtersReducer, initialState);
+  // ✅ 서버 데이터 로딩 (백엔드 응답: { products: [...] })
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        dispatch({ type: 'FETCH_PRODUCTS_START' });
 
+        const res = await fetch(PRODUCTS_ENDPOINT);
+        if (!res.ok) throw new Error('Failed to fetch products');
 
-    /* Loading All Products on the initial render */
-    useEffect(() => {
+        const data = await res.json();
+        const raw = Array.isArray(data.products) ? data.products : [];
 
-        // making a shallow copy of the original products data, because we should never mutate the orginal data.
-        const products = [...productsData];
+        // ✅ ProductCard가 기대하는 형태로 매핑
+        // - finalPrice / originalPrice / rateCount / images / path 필수
+        // - 백엔드가 images를 안 내려주면 placeholder로라도 채움
+        const products = raw.map((p) => {
+          // 백엔드가 images를 주는 경우: "/media/..." 같은 상대경로라고 가정하고 base 붙임
+          // 백엔드가 images를 안 주면: placeholder 1장
+          const images =
+            Array.isArray(p.images) && p.images.length > 0
+              ? p.images.map((imgPath) =>
+                  String(imgPath).startsWith('http') ? imgPath : `${API_BASE}${imgPath}`
+                )
+              : ['https://via.placeholder.com/600x600?text=No+Image'];
 
-        // finding the Max and Min Price, & setting them into the state.
-        const priceArr = products.map(item => item.finalPrice);
-        const minPrice = Math.min(...priceArr);
-        const maxPrice = Math.max(...priceArr);
+          return {
+            id: p.id,
+            title: p.title,
+            tag: p.tag,
+            tagline: p.tagline,
+            brand: p.brand ?? '',
+            category: p.category ?? '',
+            info: p.info ?? '',
+            flavor: p.flavor ?? '',
+            ratings:p.ratings ?? 0,
+
+            finalPrice: Number(p.final_price ?? 0),
+            originalPrice: p.original_price != null ? Number(p.original_price) : null,
+
+            // ProductCard에서 [...Array(rateCount)] 하니까 정수로 맞춤
+            rateCount: Math.max(0, Math.round(Number(p.rate_count ?? 0))),
+
+            ratings: Number(p.ratings ?? 0),
+            isActive: Boolean(p.is_active),
+
+            images,
+            path: DEFAULT_PRODUCT_PATH,
+          };
+        });
+
+        const priceArr = products.map((item) => item.finalPrice);
+        const minPrice = priceArr.length ? Math.min(...priceArr) : 0;
+        const maxPrice = priceArr.length ? Math.max(...priceArr) : 0;
 
         dispatch({
-            type: 'LOAD_ALL_PRODUCTS',
-            payload: { products, minPrice, maxPrice }
+          type: 'LOAD_ALL_PRODUCTS',
+          payload: { products, minPrice, maxPrice },
         });
-
-    }, []);
-
-
-    /* function for applying Filters - (sorting & filtering) */
-    const applyFilters = () => {
-
-        let updatedProducts = [...productsData];
-
-        /*==== Sorting ====*/
-        if (state.sortedValue) {
-            switch (state.sortedValue) {
-                case 'Latest':
-                    updatedProducts = updatedProducts.slice(0, 6).map(item => item);
-                    break;
-
-                case 'Featured':
-                    updatedProducts = updatedProducts.filter(item => item.tag === 'featured-product');
-                    break;
-
-                case 'Top Rated':
-                    updatedProducts = updatedProducts.filter(item => item.rateCount > 4);
-                    break;
-
-                case 'Price(Lowest First)':
-                    updatedProducts = updatedProducts.sort((a, b) => a.finalPrice - b.finalPrice);
-                    break;
-
-                case 'Price(Highest First)':
-                    updatedProducts = updatedProducts.sort((a, b) => b.finalPrice - a.finalPrice);
-                    break;
-
-                default:
-                    throw new Error('Wrong Option Selected');
-            }
-        }
-
-        /*==== Filtering ====*/
-
-        // filter by Brands
-        const checkedBrandItems = state.updatedBrandsMenu.filter(item => {
-            return item.checked;
-        }).map(item => item.label.toLowerCase());
-
-        if (checkedBrandItems.length) {
-            updatedProducts = updatedProducts.filter(item => checkedBrandItems.includes(item.brand.toLowerCase()));
-        }
-
-        // filter by Category
-        const checkedCategoryItems = state.updatedCategoryMenu.filter(item => {
-            return item.checked;
-        }).map(item => item.label.toLowerCase());
-
-        if (checkedCategoryItems.length) {
-            updatedProducts = updatedProducts.filter(item => checkedCategoryItems.includes(item.category.toLowerCase()));
-        }
-
-        // filter by Price
-        if (state.selectedPrice) {
-            updatedProducts = updatedProducts.filter(item => {
-                return item.finalPrice <= state.selectedPrice.price;
-            });
-        }
-
+      } catch (e) {
         dispatch({
-            type: 'FILTERED_PRODUCTS',
-            payload: { updatedProducts }
+          type: 'FETCH_PRODUCTS_ERROR',
+          payload: { error: e.message || 'Unknown error' },
         });
+      }
     };
 
-    useEffect(() => {
-        applyFilters();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state.sortedValue, state.updatedBrandsMenu, state.updatedCategoryMenu, state.selectedPrice]);
+    fetchProducts();
+  }, []);
 
+  const applyFilters = () => {
+    let updatedProducts = [...state.products];
 
+    /*==== Sorting ====*/
+    if (state.sortedValue) {
+      switch (state.sortedValue) {
+        case 'Latest':
+          updatedProducts = updatedProducts.slice(0, 6).map((item) => item);
+          break;
 
-    // Dispatched Actions
-    const setSortedValue = (sortValue) => {
-        return dispatch({
-            type: 'SET_SORTED_VALUE',
-            payload: { sortValue }
-        });
-    };
+        case 'Featured':
+          updatedProducts = updatedProducts.filter((item) => item.tag === 'featured-product');
+          break;
 
-    const handleBrandsMenu = (id) => {
-        return dispatch({
-            type: 'CHECK_BRANDS_MENU',
-            payload: { id }
-        });
-    };
+        case 'Top Rated':
+          updatedProducts = updatedProducts.filter((item) => item.rateCount > 4);
+          break;
 
-    const handleCategoryMenu = (id) => {
-        return dispatch({
-            type: 'CHECK_CATEGORY_MENU',
-            payload: { id }
-        });
-    };
+        case 'Price(Lowest First)':
+          updatedProducts = updatedProducts.sort((a, b) => a.finalPrice - b.finalPrice);
+          break;
 
-    const handlePrice = (event) => {
-        const value = event.target.value;
+        case 'Price(Highest First)':
+          updatedProducts = updatedProducts.sort((a, b) => b.finalPrice - a.finalPrice);
+          break;
 
-        return dispatch({
-            type: 'HANDLE_PRICE',
-            payload: { value }
-        });
-    };
+        default:
+          throw new Error('Wrong Option Selected');
+      }
+    }
 
-    const handleMobSortVisibility = (toggle) => {
-        return dispatch({
-            type: 'MOB_SORT_VISIBILITY',
-            payload: { toggle }
-        });
-    };
+    /*==== Filtering ====*/
 
-    const handleMobFilterVisibility = (toggle) => {
-        return dispatch({
-            type: 'MOB_FILTER_VISIBILITY',
-            payload: { toggle }
-        });
-    };
+    // Brands
+    const checkedBrandItems = state.updatedBrandsMenu
+      .filter((item) => item.checked)
+      .map((item) => item.label.toLowerCase());
 
-    const handleClearFilters = () => {
-        return dispatch({
-            type: 'CLEAR_FILTERS'
-        });
-    };
+    if (checkedBrandItems.length) {
+      updatedProducts = updatedProducts.filter((item) =>
+        checkedBrandItems.includes((item.brand || '').toLowerCase())
+      );
+    }
 
+    // Category
+    const checkedCategoryItems = state.updatedCategoryMenu
+      .filter((item) => item.checked)
+      .map((item) => item.label.toLowerCase());
 
-    // Context values
-    const values = {
-        ...state,
-        setSortedValue,
-        handleBrandsMenu,
-        handleCategoryMenu,
-        handlePrice,
-        handleMobSortVisibility,
-        handleMobFilterVisibility,
-        handleClearFilters,
-    };
+    if (checkedCategoryItems.length) {
+      updatedProducts = updatedProducts.filter((item) =>
+        checkedCategoryItems.includes((item.category || '').toLowerCase())
+      );
+    }
 
+    // Price
+    if (state.selectedPrice) {
+      updatedProducts = updatedProducts.filter(
+        (item) => item.finalPrice <= Number(state.selectedPrice.price)
+      );
+    }
 
-    return (
-        <filtersContext.Provider value={values}>
-            {children}
-        </filtersContext.Provider>
-    );
+    dispatch({
+      type: 'FILTERED_PRODUCTS',
+      payload: { updatedProducts },
+    });
+  };
+
+  useEffect(() => {
+    if (!state.products.length) return;
+    applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.products, state.sortedValue, state.updatedBrandsMenu, state.updatedCategoryMenu, state.selectedPrice]);
+
+  // Actions
+  const setSortedValue = (sortValue) =>
+    dispatch({ type: 'SET_SORTED_VALUE', payload: { sortValue } });
+
+  const handleBrandsMenu = (id) =>
+    dispatch({ type: 'CHECK_BRANDS_MENU', payload: { id } });
+
+  const handleCategoryMenu = (id) =>
+    dispatch({ type: 'CHECK_CATEGORY_MENU', payload: { id } });
+
+  const handlePrice = (event) => {
+    const value = event.target.value;
+    return dispatch({ type: 'HANDLE_PRICE', payload: { value } });
+  };
+
+  const handleMobSortVisibility = (toggle) =>
+    dispatch({ type: 'MOB_SORT_VISIBILITY', payload: { toggle } });
+
+  const handleMobFilterVisibility = (toggle) =>
+    dispatch({ type: 'MOB_FILTER_VISIBILITY', payload: { toggle } });
+
+  const handleClearFilters = () => dispatch({ type: 'CLEAR_FILTERS' });
+
+  const values = {
+    ...state,
+    setSortedValue,
+    handleBrandsMenu,
+    handleCategoryMenu,
+    handlePrice,
+    handleMobSortVisibility,
+    handleMobFilterVisibility,
+    handleClearFilters,
+  };
+
+  return <filtersContext.Provider value={values}>{children}</filtersContext.Provider>;
 };
 
 export default filtersContext;

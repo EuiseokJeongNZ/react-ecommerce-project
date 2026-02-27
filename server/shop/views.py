@@ -3,7 +3,7 @@ from .models import Product
 
 def health(request):
     return JsonResponse({"ok": True})
-    
+
 def product_list(request):
     products = list(Product.objects.values(
         "id",
@@ -12,6 +12,9 @@ def product_list(request):
         "tagline",
         "final_price",
         "original_price",
+        "brand",
+        "ratings",
+        "flavor",
         "category",
         "info",
         "rate_count",
