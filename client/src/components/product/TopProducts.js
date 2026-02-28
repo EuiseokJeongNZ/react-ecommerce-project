@@ -79,8 +79,8 @@ const TopProducts = ({ products = [] }) => {
                         title={item.title}
                         info={item.info}
                         category={item.category}
-                        finalPrice={Number(item.final_price)}
-                        originalPrice={Number(item.original_price ?? item.final_price)}
+                        finalPrice={Number(item.finalPrice)}
+                        originalPrice={Number(item.originalPrice ?? item.final_price)}
                         rateCount={Math.max(0, Math.min(5, Math.round(Number(item.rate_count ?? 5))))}
                         path="/product-details/"
                         />

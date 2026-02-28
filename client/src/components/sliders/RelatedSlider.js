@@ -1,47 +1,26 @@
-import React from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, A11y } from 'swiper';
-import productsData from '../../data/productsData';
+import React, { useContext, useMemo } from 'react';
+import filtersContext from '../../contexts/filters/filtersContext';
 import ProductCard from '../product/ProductCard';
 
-import 'swiper/scss';
-import 'swiper/scss/pagination';
+const RelatedSlider = ({ category }) => {
+  const { products } = useContext(filtersContext);
 
-
-const RelatedSlider = (props) => {
-
-    const { category } = props;
-
-    const relatedProduct = productsData.filter(item => item.category === category);
-
-    return (
-        <Swiper
-            modules={[Pagination, A11y]}
-            spaceBetween={10}
-            slidesPerView={"auto"}
-            pagination={{ clickable: true }}
-            breakpoints={{
-                480: {
-                    slidesPerView: 2,
-                },
-                768: {
-                    slidesPerView: 2,
-                },
-                992: {
-                    slidesPerView: 4,
-                },
-            }}
-            className="related_swiper"
-        >
-            {
-                relatedProduct.map(item => (
-                    <SwiperSlide key={item.id}>
-                        <ProductCard {...item} />
-                    </SwiperSlide>
-                ))
-            }
-        </Swiper>
+  const related = useMemo(() => {
+    if (!category) return [];
+    return products.filter(
+      (p) => (p.category || '').toLowerCase() === category.toLowerCase()
     );
+  }, [products, category]);
+
+  if (!related.length) return null;
+
+  return (
+    <div className="wrapper products_wrapper">
+      {related.map((item) => (
+        <ProductCard key={item.id} {...item} />
+      ))}
+    </div>
+  );
 };
 
 export default RelatedSlider;

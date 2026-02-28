@@ -7,7 +7,6 @@ const filtersContext = createContext();
 const API_BASE = 'http://127.0.0.1:8000';
 const PRODUCTS_ENDPOINT = `${API_BASE}/api/products/`;
 
-// ProductCard가 기대하는 기본 path (네 라우터에 맞게 필요하면 수정)
 const DEFAULT_PRODUCT_PATH = '/product-details/';
 
 const initialState = {
@@ -44,18 +43,13 @@ const FiltersProvider = ({ children }) => {
         const data = await res.json();
         const raw = Array.isArray(data.products) ? data.products : [];
 
-        // ✅ ProductCard가 기대하는 형태로 매핑
-        // - finalPrice / originalPrice / rateCount / images / path 필수
-        // - 백엔드가 images를 안 내려주면 placeholder로라도 채움
         const products = raw.map((p) => {
-          // 백엔드가 images를 주는 경우: "/media/..." 같은 상대경로라고 가정하고 base 붙임
-          // 백엔드가 images를 안 주면: placeholder 1장
           const images =
             Array.isArray(p.images) && p.images.length > 0
               ? p.images.map((imgPath) =>
                   String(imgPath).startsWith('http') ? imgPath : `${API_BASE}${imgPath}`
                 )
-              : ['https://via.placeholder.com/600x600?text=No+Image'];
+              : ['https://placehold.co/600x600?text=No+Image'];
 
           return {
             id: p.id,
@@ -66,12 +60,10 @@ const FiltersProvider = ({ children }) => {
             category: p.category ?? '',
             info: p.info ?? '',
             flavor: p.flavor ?? '',
-            ratings:p.ratings ?? 0,
 
             finalPrice: Number(p.final_price ?? 0),
             originalPrice: p.original_price != null ? Number(p.original_price) : null,
 
-            // ProductCard에서 [...Array(rateCount)] 하니까 정수로 맞춤
             rateCount: Math.max(0, Math.round(Number(p.rate_count ?? 0))),
 
             ratings: Number(p.ratings ?? 0),

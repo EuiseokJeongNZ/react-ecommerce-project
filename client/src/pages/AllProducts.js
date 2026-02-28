@@ -14,7 +14,6 @@ const AllProducts = () => {
 
     const { allProducts } = useContext(filtersContext);
 
-
     return (
         <>
             <section id="all_products" className="section">

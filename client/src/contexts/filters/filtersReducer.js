@@ -19,18 +19,16 @@ const filtersReducer = (state, action) => {
 
       return {
         ...state,
-        loading: false,
-        error: null,
-
-        products,            // ✅ 추가: 원본 저장
-        allProducts: products,
-
+        products,              // ✅ 원본 저장
+        allProducts: products, // ✅ 처음엔 원본 그대로 보여줌
         selectedPrice: {
           ...state.selectedPrice,
           price: maxPrice,
-          minPrice: minPrice,
+          minPrice,
           maxPrice,
         },
+        loading: false,
+        error: null,
       };
     }
 
@@ -80,9 +78,9 @@ const filtersReducer = (state, action) => {
     case 'FILTERED_PRODUCTS':
       return {
         ...state,
-        allProducts: action.payload.updatedProducts,
+        allProducts: action.payload.updatedProducts, // ✅ 화면용만 바꿈
       };
-
+      
     case 'MOB_SORT_VISIBILITY':
       return {
         ...state,

@@ -25,8 +25,8 @@ const HeroSlider = ({ products = [] }) => {
         const id = item.id;
         const title = item.title;
         const tagline = item.tagline || '';
-        const finalPrice = Number(item.final_price ?? 0);
-        const originalPrice = Number(item.original_price ?? item.final_price ?? 0);
+        const finalPrice = Number(item.finalPrice ?? 0);
+        const originalPrice = Number(item.originalPrice ?? item.finalPrice ?? 0);
 
         const heroImage =
           (item.images?.length ? item.images[0] : '/images/placeholder.png');
