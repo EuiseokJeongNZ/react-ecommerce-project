@@ -1,0 +1,17 @@
+flowchart LR
+
+  U[User] -->|Request / Response| FE[React SPA]
+
+  FE -->|API Request credentials: include| API[Django API Container]
+
+  API -->|Read / Write| DB[(PostgreSQL Container)]
+  API -->|Cache| REDIS[(Redis Container)]
+  API -->|File Upload| S3[(AWS S3)]
+
+  API -->|Set-Cookie: access & refresh HttpOnly| FE
+  FE -->|Auto-send Cookie on Request| API
+
+  DEV[Developer] --> GIT[GitHub]
+  GIT --> CI[GitHub Actions]
+  CI -->|Build Docker Image| REG[(Docker Registry)]
+  REG -->|Deploy| API

@@ -39,12 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Django REST Framework - provides API functionality (serializers, viewsets, etc.)
-    # "rest_framework",
+    "rest_framework",
     # Handles Cross-Origin Resource Sharing (allows React frontend to access Django API)
     "corsheaders",
     # Custom application for the e-commerce business logic
     "shop",
+
+    # JWT
+    "rest_framework_simplejwt",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
 
 MIDDLEWARE = [
      # Enables CORS handling
@@ -62,6 +71,8 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'config.urls'
 
@@ -135,3 +146,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Giving Permission to User Table in the shop
+AUTH_USER_MODEL = "shop.User"
