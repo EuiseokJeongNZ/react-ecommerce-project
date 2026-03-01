@@ -79,6 +79,18 @@ const AccountForm = () => {
 
                                     <div className="input_box">
                                         <input
+                                            type="tel"
+                                            name="phone"
+                                            className="input_field"
+                                            value={inputValues.phone || ''}
+                                            onChange={handleInputValues}
+                                            required
+                                        />
+                                        <label className="input_label">Phone</label>
+                                    </div>
+
+                                    <div className="input_box">
+                                        <input
                                             type="password"
                                             name="password"
                                             className="input_field"

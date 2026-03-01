@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import Product
+from .models.product import Product
 
 def health(request):
     return JsonResponse({"ok": True})
