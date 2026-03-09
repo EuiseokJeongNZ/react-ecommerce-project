@@ -1,10 +1,14 @@
+# auth_views.py
+
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 import json
+from django.views.decorators.csrf import csrf_exempt
 
 User = get_user_model()
 
+@csrf_exempt
 def login(request):
     # only take POST request
     if request.method != "POST":
@@ -52,3 +56,29 @@ def login(request):
     )
 
     return response
+
+def me(request):
+    access_token = request.COOKIES.get("access")
+
+    # allow only POST requests for login
+    if not access_token:
+        return JsonResponse({"message":"Not logged in"}, status=401)
+    
+    if request.method != "GET":
+        return JsonResponse({"message": "GET only"}, status=405)
+    
+    try:
+        # decode token and extract user id
+        token = AccessToken(access_token)
+        user_id = token["user_id"]
+        # retrieve user from database
+        user = User.objects.get(id=user_id)
+    except Exception as e:
+        return JsonResponse({"message": str(e)}, status=401)
+    
+    # return logged-in user information
+    return JsonResponse({
+        "email":user.email,
+        "name":user.name,
+        "role":user.role,
+    })

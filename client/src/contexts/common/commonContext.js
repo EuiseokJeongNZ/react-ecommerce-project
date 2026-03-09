@@ -9,7 +9,8 @@ const initialState = {
     isFormOpen: false,
     formUserInfo: '',
     isSearchOpen: false,
-    searchResults: []
+    searchResults: [],
+    currentUser: null,
 };
 
 // Common-Provider Component
@@ -47,13 +48,21 @@ const CommonProvider = ({ children }) => {
         });
     };
 
+    const setCurrentUser = (user) => {
+        return dispatch({
+            type: 'SET_CURRENT_USER',
+            payload: { user }
+        });
+    };
+
     // Context values
     const values = {
         ...state,
         toggleForm,
         setFormUserInfo,
         toggleSearch,
-        setSearchResults
+        setSearchResults,
+        setCurrentUser,
     };
 
     return (

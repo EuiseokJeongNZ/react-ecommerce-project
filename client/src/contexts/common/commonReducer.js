@@ -27,7 +27,12 @@ const commonReducer = (state, action) => {
                 ...state,
                 searchResults: action.payload.results
             };
-
+        
+        case "SET_CURRENT_USER":
+            return {
+                ...state,
+                currentUser: action.payload.user
+            };
 
         default:
             return state;

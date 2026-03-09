@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = `${process.env.REACT_APP_API_BASE}/api`;
 
 export async function getProducts() {
   const res = await fetch(`${API_BASE}/products/`);
