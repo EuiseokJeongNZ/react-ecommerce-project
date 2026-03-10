@@ -6,13 +6,14 @@ import commonContext from '../../contexts/common/commonContext';
 import cartContext from '../../contexts/cart/cartContext';
 import AccountForm from '../form/AccountForm';
 import SearchBar from './SearchBar';
+import api from '../../api/axios';
 
 const Header = () => {
-  const { currentUser, toggleForm, toggleSearch } = useContext(commonContext);
+  const { currentUser, setCurrentUser, toggleForm, toggleSearch, authLoading } =
+    useContext(commonContext);
   const { cartItems } = useContext(cartContext);
   const [isSticky, setIsSticky] = useState(false);
 
-  // handle sticky header
   useEffect(() => {
     const handleIsSticky = () => {
       setIsSticky(window.scrollY >= 50);
@@ -26,6 +27,16 @@ const Header = () => {
   }, []);
 
   const cartQuantity = cartItems.length;
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/auth/logout/');
+      setCurrentUser(null);
+      console.log('logged out');
+    } catch (err) {
+      console.log(err.response?.data || err);
+    }
+  };
 
   return (
     <>
@@ -58,18 +69,17 @@ const Header = () => {
                 </span>
 
                 <div className="dropdown_menu">
-                  <h4>
-                    {currentUser ? `Hello, ${currentUser.name}!` : 'Hello!'}
-                  </h4>
+                  <h4>{currentUser ? `Hello, ${currentUser.name}!` : 'Hello!'}</h4>
 
                   <p>Access account and manage orders</p>
 
-                  {!currentUser && (
-                    <button
-                      type="button"
-                      onClick={() => toggleForm(true)}
-                    >
+                  {authLoading ? null : !currentUser ? (
+                    <button type="button" onClick={() => toggleForm(true)}>
                       Login / Signup
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleLogout}>
+                      Logout
                     </button>
                   )}
 

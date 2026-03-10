@@ -33,6 +33,12 @@ const commonReducer = (state, action) => {
                 ...state,
                 currentUser: action.payload.user
             };
+        
+        case 'SET_AUTH_LOADING':
+            return {
+                ...state,
+                authLoading: action.payload.loading,
+            };
 
         default:
             return state;

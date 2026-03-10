@@ -1,75 +1,112 @@
-import { createContext, useReducer } from 'react';
+import { createContext, useReducer, useEffect } from 'react';
 import commonReducer from './commonReducer';
+import api from '../../api/axios';
 
 // Common-Context
 const commonContext = createContext();
 
 // Initial State
 const initialState = {
-    isFormOpen: false,
-    formUserInfo: '',
-    isSearchOpen: false,
-    searchResults: [],
-    currentUser: null,
+  isFormOpen: false,
+  formUserInfo: '',
+  isSearchOpen: false,
+  searchResults: [],
+  currentUser: null,
+  authLoading: true,
 };
 
 // Common-Provider Component
 const CommonProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(commonReducer, initialState);
 
-    const [state, dispatch] = useReducer(commonReducer, initialState);
-
-    // Form actions
-    const toggleForm = (toggle) => {
-        return dispatch({
-            type: 'TOGGLE_FORM',
-            payload: { toggle }
-        });
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await api.get('/api/auth/me/');
+        setCurrentUser(res.data);
+      } catch (err) {
+        setCurrentUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
     };
 
-    const setFormUserInfo = (info) => {
-        return dispatch({
-            type: 'SET_FORM_USER_INFO',
-            payload: { info }
-        });
-    };
+    checkAuth();
+  }, []);
 
-    // Search actions
-    const toggleSearch = (toggle) => {
-        return dispatch({
-            type: 'TOGGLE_SEARCH',
-            payload: { toggle }
-        });
-    };
+  useEffect(() => {
+        const handleAutoLogout = () => {
+            setCurrentUser(null);
+            setAuthLoading(false);
+        };
 
-    const setSearchResults = (results) => {
-        return dispatch({
-            type: 'SET_SEARCH_RESULTS',
-            payload: { results }
-        });
-    };
+        window.addEventListener("auth:logout", handleAutoLogout);
 
-    const setCurrentUser = (user) => {
-        return dispatch({
-            type: 'SET_CURRENT_USER',
-            payload: { user }
-        });
-    };
+        return () => {
+            window.removeEventListener("auth:logout", handleAutoLogout);
+        };
+    }, []);
 
-    // Context values
-    const values = {
-        ...state,
-        toggleForm,
-        setFormUserInfo,
-        toggleSearch,
-        setSearchResults,
-        setCurrentUser,
-    };
+  // Form actions
+  const toggleForm = (toggle) => {
+    return dispatch({
+      type: 'TOGGLE_FORM',
+      payload: { toggle },
+    });
+  };
 
-    return (
-        <commonContext.Provider value={values}>
-            {children}
-        </commonContext.Provider>
-    );
+  const setFormUserInfo = (info) => {
+    return dispatch({
+      type: 'SET_FORM_USER_INFO',
+      payload: { info },
+    });
+  };
+
+  // Search actions
+  const toggleSearch = (toggle) => {
+    return dispatch({
+      type: 'TOGGLE_SEARCH',
+      payload: { toggle },
+    });
+  };
+
+  const setSearchResults = (results) => {
+    return dispatch({
+      type: 'SET_SEARCH_RESULTS',
+      payload: { results },
+    });
+  };
+
+  const setCurrentUser = (user) => {
+    return dispatch({
+      type: 'SET_CURRENT_USER',
+      payload: { user },
+    });
+  };
+
+  const setAuthLoading = (loading) => {
+    return dispatch({
+      type: 'SET_AUTH_LOADING',
+      payload: { loading },
+    });
+  };
+
+  // Context values
+  const values = {
+    ...state,
+    toggleForm,
+    setFormUserInfo,
+    toggleSearch,
+    setSearchResults,
+    setCurrentUser,
+    setAuthLoading,
+  };
+
+  return (
+    <commonContext.Provider value={values}>
+      {children}
+    </commonContext.Provider>
+  );
 };
 
 export default commonContext;
