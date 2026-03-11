@@ -25,15 +25,26 @@ const AccountForm = () => {
     setErrorMessage('');
   };
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (isSignupVisible) {
-      return;
-    }
 
     try {
       setErrorMessage('');
+
+      if (isSignupVisible) {
+        await api.post('/api/auth/signup/', {
+          username: inputValues.username,
+          email: inputValues.email,
+          phone: inputValues.phone,
+          password: inputValues.password,
+          conf_password: inputValues.conf_password,
+        });
+
+        setErrorMessage('');
+        alert('Signup successful. Please login.');
+        setIsSignupVisible(false);
+        return;
+      }
 
       await api.post('/api/auth/login/', {
         email: inputValues.email,
@@ -41,7 +52,6 @@ const AccountForm = () => {
       });
 
       const me = await api.get('/api/auth/me/');
-
       setCurrentUser(me.data);
 
       console.log('logged in user:', me.data);
@@ -49,7 +59,7 @@ const AccountForm = () => {
       toggleForm(false);
     } catch (err) {
       console.log(err.response?.data);
-      setErrorMessage(err.response?.data?.message || 'Login failed');
+      setErrorMessage(err.response?.data?.message || 'Request failed');
     }
   };
 
@@ -58,7 +68,7 @@ const AccountForm = () => {
       {isFormOpen && (
         <div className="backdrop">
           <div className="modal_centered">
-            <form id="account_form" ref={formRef} onSubmit={handleLogin}>
+            <form id="account_form" ref={formRef} onSubmit={handleSubmit}>
               <div className="form_head">
                 <h2>{isSignupVisible ? 'Signup' : 'Login'}</h2>
                 <p>

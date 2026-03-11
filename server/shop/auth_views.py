@@ -163,3 +163,53 @@ def refresh(request):
 
     # return response to client
     return response
+
+@csrf_exempt
+def signup(request):
+    if request.method != "POST":
+        return JsonResponse({"message":"POST only"}, status=405)
+    
+    # parse JSON body safely
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"message":"Invalid JSON"}, status=400)
+    
+    # get signup datas from request body
+    username = data.get("username")
+    email = data.get("email")
+    password = data.get("password")
+    conf_password = data.get("conf_password")
+    phone = data.get("phone")
+
+    # validate requires fields
+    if not username or not email or not password or not conf_password or not phone:
+        return JsonResponse({"message":"All fields are required"}, status = 400)
+    
+    # password do not match
+    if password != conf_password:
+        return JsonResponse({"message":"Passwords do not match"}, status=400)
+    
+    # avoid duplicated emails
+    if User.objects.filter(email=email).exists():
+        return JsonResponse({"message":"Email already exists"}, status=400)
+    
+    # create a new user
+    try:
+        user = User.objects.create(
+            name=username,
+            email=email,
+            phone=phone,
+        )
+        user.set_password(password)
+        user.save()
+    except:
+        return JsonResponse({"message":"Signup failed"}, status=500)
+    
+    # return sucess response
+    return JsonResponse({
+        "ok":True,
+        "message":"Signup sucessful"
+    }, status=201)
+
+

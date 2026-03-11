@@ -13,30 +13,34 @@ api.interceptors.response.use(
 
   // handle response errors
   async (error) => {
-    // keep the original failed request
     const originalRequest = error.config;
 
-    // try refresh only once when access token is expired
+    // do not retry refresh request itself
+    if (originalRequest?.url?.includes("/api/auth/refresh/")) {
+      window.dispatchEvent(new Event("auth:logout"));
+      return Promise.reject(error);
+    }
+
+    // try refresh only once for 401 errors
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // prevent infinite retry loop
       originalRequest._retry = true;
 
       try {
-        // request a new access token using refresh cookie
-        await api.post("/api/auth/refresh/");
+        // use plain axios here to avoid interceptor conflicts
+        await axios.post(
+          `${process.env.REACT_APP_API_BASE}/api/auth/refresh/`,
+          {},
+          { withCredentials: true }
+        );
 
-        // retry the original request after refresh succeeds
+        // retry the original request
         return api(originalRequest);
       } catch (refreshError) {
-        // notify the app that authentication is no longer valid
         window.dispatchEvent(new Event("auth:logout"));
-
-        // reject refresh failure
         return Promise.reject(refreshError);
       }
     }
 
-    // reject all other errors
     return Promise.reject(error);
   }
 );
