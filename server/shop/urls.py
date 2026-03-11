@@ -1,15 +1,15 @@
 # urls.py
 
 from django.urls import path
-from . import views
-from . import auth_views
+from .views import product_views, auth_views, address_views
 
 urlpatterns = [
-    path("health/", views.health),
-    path("products/", views.product_list),
+    path("health/", product_views.health),
+    path("products/", product_views.product_list),
     path("auth/login/", auth_views.login),
     path("auth/me/", auth_views.me),
     path("auth/logout/", auth_views.logout),
     path("auth/refresh/", auth_views.refresh),
     path("auth/signup/", auth_views.signup),
+    path("address/", address_views.address_list),
 ]
