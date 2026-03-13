@@ -1,18 +1,20 @@
+// headerData.js
+
 export const dropdownMenu = [
     {
         id: 1,
+        link: "Profile",
+        path: "/profile",
+    },
+    {
+        id: 2,
         link: "Orders",
         path: "*",
     },
     {
-        id: 2,
-        link: "Wishlist",
-        path: "*",
-    },
-    {
         id: 3,
-        link: "Gift Cards",
-        path: "*",
+        link: "Saved Addresses",
+        path: "/addresses",
     },
     {
         id: 4,
@@ -21,7 +23,7 @@ export const dropdownMenu = [
     },
     {
         id: 5,
-        link: "Saved Addresses",
+        link: "Gift Cards",
         path: "*",
     },
 ];

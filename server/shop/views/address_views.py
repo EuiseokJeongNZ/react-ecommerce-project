@@ -2,10 +2,12 @@ from django.http import JsonResponse
 from ..models.address import Address
 from ..models.user import User
 from rest_framework_simplejwt.tokens import AccessToken
+from django.views.decorators.csrf import csrf_exempt
 import json
 
 
 # get logged in user from jwt access token in cookie
+@csrf_exempt
 def get_current_user(request):
     access_token = request.COOKIES.get("access")
 
@@ -27,6 +29,7 @@ def get_current_user(request):
     
 
 # api for getting address list or creating address
+@csrf_exempt
 def address_list(request):
 
     # get current user
@@ -107,6 +110,7 @@ def address_list(request):
 
 
 # api for updating or deleting one address
+@csrf_exempt
 def address_detail(request, address_id):
 
     # get current user
@@ -120,6 +124,21 @@ def address_detail(request, address_id):
         address = Address.objects.get(id=address_id, user=user)
     except Address.DoesNotExist:
         return JsonResponse({"message": "Address not found"}, status=404)
+    
+    # # Get method for test
+    # if request.method == "GET":
+    #     return JsonResponse({
+    #         "address": {
+    #             "id": address.id,
+    #             "recipient": address.recipient,
+    #             "phone": address.phone,
+    #             "zip": address.zip,
+    #             "addr1": address.addr1,
+    #             "addr2": address.addr2,
+    #             "is_default": address.is_default,
+    #             "created_at": address.created_at,
+    #         }
+    #     })
 
     # update address
     if request.method == "PUT":
