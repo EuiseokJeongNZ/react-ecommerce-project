@@ -8,6 +8,8 @@ import ProductDetails from '../pages/ProductDetails';
 import ErrorPage from '../pages/ErrorPage';
 import Addresses from '../pages/Addresses';
 import Profile from "../pages/Profile";
+import Orders from '../pages/Orders';
+import Checkout from  "../pages/Checkout";
 
 const RouterRoutes = () => {
 
@@ -22,6 +24,8 @@ const RouterRoutes = () => {
                 <Route path="/product-details/:productId" element={<ProductDetails />} />
                 <Route path="/addresses" element={<Addresses />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="*" element={<ErrorPage />} />
             </Routes>
         </>
