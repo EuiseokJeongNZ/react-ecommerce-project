@@ -5,8 +5,11 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.conf import settings
 
 User = get_user_model()
+COOKIE_SECURE = not settings.DEBUG
+COOKIE_SAMESITE = "None" if not settings.DEBUG else "Lax"
 
 
 @csrf_exempt
@@ -51,7 +54,8 @@ def login(request):
         key="access",
         value=access_token,
         httponly=True,
-        samesite="Lax",
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
         path="/",
     )
 
@@ -60,7 +64,8 @@ def login(request):
         key="refresh",
         value=refresh_token,
         httponly=True,
-        samesite="Lax",
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
         path="/",
     )
 
@@ -110,8 +115,17 @@ def logout(request):
     response = JsonResponse({"ok": True})
 
     # delete cookies
-    response.delete_cookie("access", path="/")
-    response.delete_cookie("refresh", path="/")
+    response.delete_cookie(
+        "access",
+        path="/",
+        samesite=COOKIE_SAMESITE,
+    )
+
+    response.delete_cookie(
+        "refresh",
+        path="/",
+        samesite=COOKIE_SAMESITE,
+    )
 
     return response
 
@@ -157,8 +171,10 @@ def refresh(request):
         key="access",
         value=new_access_token,
         httponly=True,
-        samesite="Lax",
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
         path="/",
+        max_age=300,
     )
 
     # return response to client
