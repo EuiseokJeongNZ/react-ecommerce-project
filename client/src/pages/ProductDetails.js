@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { IoMdStar, IoMdCheckmark } from 'react-icons/io';
 import { calculateDiscount, displayMoney } from '../helpers/utils';
@@ -16,30 +16,24 @@ const ProductDetails = () => {
 
   const { addItem } = useContext(cartContext);
   const { products, allProducts, loading, error } = useContext(filtersContext);
-
   const { handleActive, activeClass } = useActive(0);
 
-  // ✅ 라우터가 /product-details/:id 이든 /product-details/:productId 이든 모두 대응
   const params = useParams();
   const id = params.id ?? params.productId;
 
-  // ✅ 혹시 products가 비어있고 allProducts만 채워진 경우 대비(안전장치)
-  const source = (products && products.length) ? products : (allProducts || []);
+  const source = products && products.length ? products : allProducts || [];
 
-  const product = useMemo(() => {
-    if (!id) return null;
-    return source.find((item) => String(item.id) === String(id)) || null;
-  }, [source, id]);
+  const product = id
+    ? source.find((item) => String(item.id) === String(id)) || null
+    : null;
 
   const [previewImg, setPreviewImg] = useState('');
 
-  // ✅ Hooks는 항상 위에서 호출, 조건은 안에서 처리
   useEffect(() => {
     if (!product) return;
     setPreviewImg(product.images?.[0] || '');
     handleActive(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product?.id]);
+  }, [product, handleActive]);
 
   const handleAddItem = () => {
     if (!product) return;
@@ -52,7 +46,6 @@ const ProductDetails = () => {
     handleActive(i);
   };
 
-  // ✅ 여기부터 return 분기(훅 아래)
   if (loading) {
     return (
       <div className="section">
@@ -96,21 +89,21 @@ const ProductDetails = () => {
     rateCount,
   } = product;
 
-  // ✅ originalPrice가 null일 수 있으니 방어
   const safeOriginal = originalPrice ?? finalPrice;
   const discountedPrice = safeOriginal - finalPrice;
 
   const newPrice = displayMoney(finalPrice);
   const oldPrice = displayMoney(safeOriginal);
   const savedPrice = displayMoney(discountedPrice);
-  const savedDiscount = safeOriginal ? calculateDiscount(discountedPrice, safeOriginal) : 0;
+  const savedDiscount = safeOriginal
+    ? calculateDiscount(discountedPrice, safeOriginal)
+    : 0;
 
   return (
     <>
       <section id="product_details" className="section">
         <div className="container">
           <div className="wrapper prod_details_wrapper">
-            {/* Left */}
             <div className="prod_details_left_col">
               <div className="prod_details_tabs">
                 {images.map((img, i) => (
@@ -129,7 +122,6 @@ const ProductDetails = () => {
               </figure>
             </div>
 
-            {/* Right */}
             <div className="prod_details_right_col">
               <h1 className="prod_details_title">{title}</h1>
               <h4 className="prod_details_info">{info}</h4>

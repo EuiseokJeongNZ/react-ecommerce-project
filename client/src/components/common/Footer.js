@@ -73,7 +73,7 @@ const Footer = () => {
                         <div className="foot_copyright">
                             <p>
                                 {currYear} | PurePro. All Rights Reserved.
-                                Built by | <a href="">Euiseok Jeong</a>
+                                Built by | <a href="https://github.com/EuiseokJeongNZ">Euiseok Jeong</a>
                             </p>
                         </div>
                         <div className="foot_social">
