@@ -1,3 +1,4 @@
+// ProductDetails.js
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { IoMdStar, IoMdCheckmark } from 'react-icons/io';
