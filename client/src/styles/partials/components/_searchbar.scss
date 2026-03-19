@@ -2,7 +2,7 @@
     display: grid;
     grid-template-columns: 0.5fr;
     justify-content: center;
-    align-items: start;
+    align-items: flex-start;
 
     @include devices(lg) {
         grid-template-columns: 0.8fr;

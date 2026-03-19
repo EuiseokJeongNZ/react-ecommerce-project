@@ -5,7 +5,7 @@
 .profile_wrapper {
     grid-template-columns: 0.95fr 1.05fr;
     gap: 2rem;
-    align-items: start;
+    align-items: flex-start;
 
     @include devices(lg) {
         grid-template-columns: 1fr;

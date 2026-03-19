@@ -5,7 +5,7 @@
 .checkout_wrapper {
     grid-template-columns: 1.05fr 0.95fr;
     gap: 2rem;
-    align-items: start;
+    align-items: flex-start;
 
     @include devices(lg) {
         grid-template-columns: 1fr;
