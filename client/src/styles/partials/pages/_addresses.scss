@@ -125,7 +125,7 @@
 }
 
 .address_card_top {
-    @include flexbox(space-between, start);
+    @include flexbox(space-between, flex-start);
     gap: 1rem;
 
     h4 {
