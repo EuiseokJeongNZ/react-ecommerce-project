@@ -1,3 +1,5 @@
+@use "../base/index" as *;
+
 .services_wrapper {
     @include grid-cols(4, 1fr, 2rem);
     place-items: center;

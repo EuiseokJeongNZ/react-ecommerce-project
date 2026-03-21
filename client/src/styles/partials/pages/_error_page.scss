@@ -1,3 +1,5 @@
+@use "../base/index" as *;
+
 #error_page {
     @include centered;
     @include padding-y(8rem, 8rem);

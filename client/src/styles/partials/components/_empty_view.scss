@@ -1,3 +1,5 @@
+@use "../base/index" as *;
+
 .empty_view_wrapper {
     @include centered;
     gap: 2rem;

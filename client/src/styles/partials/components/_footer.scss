@@ -1,3 +1,5 @@
+@use "../base/index" as *;
+
 #footer {
     background-color: var(--black-color);
     @include padding-y(3rem, 2rem);

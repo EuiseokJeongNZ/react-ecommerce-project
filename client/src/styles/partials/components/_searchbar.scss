@@ -1,3 +1,5 @@
+@use "../base/index" as *;
+
 #searchbar {
     display: grid;
     grid-template-columns: 0.5fr;

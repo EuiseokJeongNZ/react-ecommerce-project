@@ -1,3 +1,5 @@
+@use "../base/index" as *;
+
 #cart {
     @include padding-y(8rem, 8rem);
 }
