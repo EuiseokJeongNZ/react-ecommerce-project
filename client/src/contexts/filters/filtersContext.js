@@ -31,85 +31,84 @@ const initialState = {
 const FiltersProvider = ({ children }) => {
   const [state, dispatch] = useReducer(filtersReducer, initialState);
 
-  // ✅ server datas loading (backend response: { products: [...] })
-  useEffect(() => {
-    const fetchProducts = async (retryCount = 0) => {
-      // add request timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+  // 🔥 fetchProducts를 밖으로 뺌
+  const fetchProducts = async (retryCount = 0) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-      try {
-        dispatch({ type: 'FETCH_PRODUCTS_START' });
+    try {
+      dispatch({ type: 'FETCH_PRODUCTS_START' });
 
-        const res = await fetch(PRODUCTS_ENDPOINT, {
-          signal: controller.signal,
-        });
+      const res = await fetch(PRODUCTS_ENDPOINT, {
+        signal: controller.signal,
+      });
 
-        if (!res.ok) throw new Error('Failed to fetch products');
+      if (!res.ok) throw new Error('Failed to fetch products');
 
-        const data = await res.json();
-        const raw = Array.isArray(data.products) ? data.products : [];
+      const data = await res.json();
+      const raw = Array.isArray(data.products) ? data.products : [];
 
-        const products = raw.map((p) => {
-          const images =
-            Array.isArray(p.images) && p.images.length > 0
-              ? p.images.map((imgPath) =>
-                  String(imgPath).startsWith('http') ? imgPath : `${API_BASE}${imgPath}`
-                )
-              : ['https://placehold.co/600x600?text=No+Image'];
+      const products = raw.map((p) => {
+        const images =
+          Array.isArray(p.images) && p.images.length > 0
+            ? p.images.map((imgPath) =>
+                String(imgPath).startsWith('http') ? imgPath : `${API_BASE}${imgPath}`
+              )
+            : ['https://placehold.co/600x600?text=No+Image'];
 
-          return {
-            id: p.id,
-            title: p.title,
-            tag: p.tag,
-            tagline: p.tagline,
-            brand: p.brand ?? '',
-            category: p.category ?? '',
-            info: p.info ?? '',
-            flavor: p.flavor ?? '',
+        return {
+          id: p.id,
+          title: p.title,
+          tag: p.tag,
+          tagline: p.tagline,
+          brand: p.brand ?? '',
+          category: p.category ?? '',
+          info: p.info ?? '',
+          flavor: p.flavor ?? '',
 
-            finalPrice: Number(p.final_price ?? 0),
-            originalPrice: p.original_price != null ? Number(p.original_price) : null,
+          finalPrice: Number(p.final_price ?? 0),
+          originalPrice: p.original_price != null ? Number(p.original_price) : null,
 
-            rateCount: Math.max(0, Math.round(Number(p.rate_count ?? 0))),
+          rateCount: Math.max(0, Math.round(Number(p.rate_count ?? 0))),
 
-            ratings: Number(p.ratings ?? 0),
-            isActive: Boolean(p.is_active),
+          ratings: Number(p.ratings ?? 0),
+          isActive: Boolean(p.is_active),
 
-            images,
-            path: DEFAULT_PRODUCT_PATH,
-          };
-        });
+          images,
+          path: DEFAULT_PRODUCT_PATH,
+        };
+      });
 
-        const priceArr = products.map((item) => item.finalPrice);
-        const minPrice = priceArr.length ? Math.min(...priceArr) : 0;
-        const maxPrice = priceArr.length ? Math.max(...priceArr) : 0;
+      const priceArr = products.map((item) => item.finalPrice);
+      const minPrice = priceArr.length ? Math.min(...priceArr) : 0;
+      const maxPrice = priceArr.length ? Math.max(...priceArr) : 0;
 
-        dispatch({
-          type: 'LOAD_ALL_PRODUCTS',
-          payload: { products, minPrice, maxPrice },
-        });
-      } catch (e) {
-        // retry once if server is slow
-        if (retryCount < 1) {
-          setTimeout(() => fetchProducts(retryCount + 1), 1500);
-          return;
-        }
-
-        dispatch({
-          type: 'FETCH_PRODUCTS_ERROR',
-          payload: {
-            error:
-              e.name === 'AbortError'
-                ? 'The server is waking up. Please try again in a moment.'
-                : e.message || 'Unknown error',
-          },
-        });
-      } finally {
-        clearTimeout(timeoutId);
+      dispatch({
+        type: 'LOAD_ALL_PRODUCTS',
+        payload: { products, minPrice, maxPrice },
+      });
+    } catch (e) {
+      if (retryCount < 1) {
+        setTimeout(() => fetchProducts(retryCount + 1), 1500);
+        return;
       }
-    };
 
+      dispatch({
+        type: 'FETCH_PRODUCTS_ERROR',
+        payload: {
+          error:
+            e.name === 'AbortError'
+              ? 'The server is waking up. Please try again in a moment.'
+              : e.message || 'Unknown error',
+        },
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
+  // 기존 useEffect 유지 (단 fetchProducts만 호출)
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -146,7 +145,6 @@ const FiltersProvider = ({ children }) => {
 
     /*==== Filtering ====*/
 
-    // Brands
     const checkedBrandItems = state.updatedBrandsMenu
       .filter((item) => item.checked)
       .map((item) => item.label.toLowerCase());
@@ -157,7 +155,6 @@ const FiltersProvider = ({ children }) => {
       );
     }
 
-    // Category
     const checkedCategoryItems = state.updatedCategoryMenu
       .filter((item) => item.checked)
       .map((item) => item.label.toLowerCase());
@@ -168,7 +165,6 @@ const FiltersProvider = ({ children }) => {
       );
     }
 
-    // Price
     if (state.selectedPrice) {
       updatedProducts = updatedProducts.filter(
         (item) => item.finalPrice <= Number(state.selectedPrice.price)
@@ -184,10 +180,8 @@ const FiltersProvider = ({ children }) => {
   useEffect(() => {
     if (!state.products.length) return;
     applyFilters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.products, state.sortedValue, state.updatedBrandsMenu, state.updatedCategoryMenu, state.selectedPrice]);
 
-  // Actions
   const setSortedValue = (sortValue) =>
     dispatch({ type: 'SET_SORTED_VALUE', payload: { sortValue } });
 
@@ -219,6 +213,7 @@ const FiltersProvider = ({ children }) => {
     handleMobSortVisibility,
     handleMobFilterVisibility,
     handleClearFilters,
+    fetchProducts, // 🔥 추가됨
   };
 
   return <filtersContext.Provider value={values}>{children}</filtersContext.Provider>;

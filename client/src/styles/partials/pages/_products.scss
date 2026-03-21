@@ -108,3 +108,46 @@
         }
     }
 }
+
+/*------ fetch fail styles ------*/
+.products_status_center {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1.6rem;
+    text-align: center;
+}
+
+.products_status_text {
+    font-size: 1.6rem;
+    line-height: 1.7;
+    color: #d8d8d8;
+    max-width: 42rem;
+
+    @include devices(sm) {
+        font-size: 1.3rem;
+        max-width: 28rem;
+    }
+}
+
+.products_status_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    font-size: 1.1rem;
+    padding: 1rem 2rem;
+    min-width: 14rem;
+
+    svg {
+        font-size: 1.1rem;
+    }
+
+    @include devices(sm) {
+        font-size: 1rem;
+        padding: 0.9rem 1.6rem;
+        min-width: 12rem;
+    }
+}
