@@ -34,7 +34,7 @@ const ProductDetails = () => {
     if (!product) return;
     setPreviewImg(product.images?.[0] || '');
     handleActive(0);
-  }, [product, handleActive]);
+  }, [product?.id]);
 
   const handleAddItem = () => {
     if (!product) return;
