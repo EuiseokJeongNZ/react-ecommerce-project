@@ -22,18 +22,26 @@ image_map = {
     2: [
         "musashi-isolate-protein-choco-1.png",
         "musashi-isolate-protein-choco-2.png",
+        "musashi-isolate-protein-choco-3.png",
+        "musashi-isolate-protein-choco-4.png",
     ],
     3: [
         "musashi-protein-bar-choco-lemon-cheesecake-1.png",
         "musashi-protein-bar-choco-lemon-cheesecake-2.png",
+        "musashi-protein-bar-choco-lemon-cheesecake-3.png",
+        "musashi-protein-bar-choco-lemon-cheesecake-4.png",
     ],
     4: [
         "balance-plant-protein-vanila-1.png",
         "balance-plant-protein-vanila-2.png",
+        "balance-plant-protein-vanila-3.png",
+        "balance-plant-protein-vanila-4.png",
     ],
     5: [
         "optinum-isolate-protein-choco-1.png",
         "optinum-isolate-protein-choco-2.png",
+        "optinum-isolate-protein-choco-3.png",
+        "optinum-isolate-protein-choco-4.png",
     ],
 }
 

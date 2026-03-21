@@ -34,17 +34,25 @@
         padding: 0.5rem;
         cursor: pointer;
         @include transition(border-color, 0.2s);
+        display: flex; // keep image centered
+        align-items: center; // center image vertically
+        justify-content: center; // center image horizontally
+        overflow: hidden; // prevent layout break
+        background-color: none; // add clean background
 
         &.active {
-            border-color: #eee;
+            border-color: none;
         }
 
         img {
-            @include img-fit;
+            width: 100%; // fill thumbnail box
+            height: 100%; // fill thumbnail box
+            object-fit: contain; // keep image ratio
+            display: block; // remove inline image gap
         }
 
         @include devices(sm) {
-            @include dimension();
+            @include dimension(5rem, 5rem); // keep square size on small screens
             padding: 0.3rem;
         }
     }
@@ -56,9 +64,19 @@
 }
 
 .prod_details_img {
+    width: 100%;
+    aspect-ratio: 1 / 1; // keep preview area square
+    display: flex; // center preview image
+    align-items: center; // center vertically
+    justify-content: center; // center horizontally
+    overflow: hidden; // prevent image overflow
+    background-color: none; // add clean background
 
     img {
-        @include img-fit;
+        width: 100%; // fill preview box
+        height: 100%; // fill preview box
+        object-fit: contain; // keep image ratio without cropping
+        display: block; // remove inline image gap
     }
 
     @include devices(sm) {
