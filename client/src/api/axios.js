@@ -4,6 +4,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE,
   withCredentials: true, // send cookies with every request
+  timeout: 10000, // stop waiting after 10 seconds
 });
 
 // response interceptor
@@ -30,7 +31,10 @@ api.interceptors.response.use(
         await axios.post(
           `${process.env.REACT_APP_API_BASE}/api/auth/refresh/`,
           {},
-          { withCredentials: true }
+          {
+            withCredentials: true,
+            timeout: 10000, // use the same timeout for refresh
+          }
         );
 
         // retry the original request
@@ -41,6 +45,7 @@ api.interceptors.response.use(
       }
     }
 
+    // reject all other errors
     return Promise.reject(error);
   }
 );

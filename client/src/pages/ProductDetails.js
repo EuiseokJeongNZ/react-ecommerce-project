@@ -22,8 +22,10 @@ const ProductDetails = () => {
   const params = useParams();
   const id = params.id ?? params.productId;
 
+  // use current filtered products first
   const source = products && products.length ? products : allProducts || [];
 
+  // find the current product by route id
   const product = id
     ? source.find((item) => String(item.id) === String(id)) || null
     : null;
@@ -32,6 +34,8 @@ const ProductDetails = () => {
 
   useEffect(() => {
     if (!product) return;
+
+    // set the first image when product changes
     setPreviewImg(product.images?.[0] || '');
     handleActive(0);
   }, [product?.id]);
@@ -43,6 +47,8 @@ const ProductDetails = () => {
 
   const handlePreviewImg = (i) => {
     if (!product) return;
+
+    // update preview image on thumbnail click
     setPreviewImg(product.images[i]);
     handleActive(i);
   };

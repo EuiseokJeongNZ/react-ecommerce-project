@@ -31,13 +31,20 @@ const initialState = {
 const FiltersProvider = ({ children }) => {
   const [state, dispatch] = useReducer(filtersReducer, initialState);
 
-  // ✅ 서버 데이터 로딩 (백엔드 응답: { products: [...] })
+  // ✅ server datas loading (backend response: { products: [...] })
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProducts = async (retryCount = 0) => {
+      // add request timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
       try {
         dispatch({ type: 'FETCH_PRODUCTS_START' });
 
-        const res = await fetch(PRODUCTS_ENDPOINT);
+        const res = await fetch(PRODUCTS_ENDPOINT, {
+          signal: controller.signal,
+        });
+
         if (!res.ok) throw new Error('Failed to fetch products');
 
         const data = await res.json();
@@ -83,10 +90,23 @@ const FiltersProvider = ({ children }) => {
           payload: { products, minPrice, maxPrice },
         });
       } catch (e) {
+        // retry once if server is slow
+        if (retryCount < 1) {
+          setTimeout(() => fetchProducts(retryCount + 1), 1500);
+          return;
+        }
+
         dispatch({
           type: 'FETCH_PRODUCTS_ERROR',
-          payload: { error: e.message || 'Unknown error' },
+          payload: {
+            error:
+              e.name === 'AbortError'
+                ? 'The server is waking up. Please try again in a moment.'
+                : e.message || 'Unknown error',
+          },
         });
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
 

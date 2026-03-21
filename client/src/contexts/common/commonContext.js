@@ -22,12 +22,16 @@ const CommonProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await api.get('/api/auth/me/');
+        // add timeout safety to prevent infinite pending
+        const res = await api.get('/api/auth/me/', {
+          timeout: 10000, // stop waiting after 10s
+        });
         setCurrentUser(res.data);
       } catch (err) {
+        // handle network timeout / error safely
         setCurrentUser(null);
       } finally {
-        setAuthLoading(false);
+        setAuthLoading(false); // always stop loading
       }
     };
 
@@ -35,17 +39,17 @@ const CommonProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-        const handleAutoLogout = () => {
-            setCurrentUser(null);
-            setAuthLoading(false);
-        };
+    const handleAutoLogout = () => {
+      setCurrentUser(null);
+      setAuthLoading(false);
+    };
 
-        window.addEventListener("auth:logout", handleAutoLogout);
+    window.addEventListener("auth:logout", handleAutoLogout);
 
-        return () => {
-            window.removeEventListener("auth:logout", handleAutoLogout);
-        };
-    }, []);
+    return () => {
+      window.removeEventListener("auth:logout", handleAutoLogout);
+    };
+  }, []);
 
   // Form actions
   const toggleForm = (toggle) => {
