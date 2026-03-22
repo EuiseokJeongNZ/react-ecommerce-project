@@ -31,7 +31,6 @@ const initialState = {
 const FiltersProvider = ({ children }) => {
   const [state, dispatch] = useReducer(filtersReducer, initialState);
 
-  // 🔥 fetchProducts를 밖으로 뺌
   const fetchProducts = async (retryCount = 0) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -213,7 +212,7 @@ const FiltersProvider = ({ children }) => {
     handleMobSortVisibility,
     handleMobFilterVisibility,
     handleClearFilters,
-    fetchProducts, // 🔥 추가됨
+    fetchProducts,
   };
 
   return <filtersContext.Provider value={values}>{children}</filtersContext.Provider>;
