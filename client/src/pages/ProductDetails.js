@@ -11,6 +11,7 @@ import SectionsHead from '../components/common/SectionsHead';
 import RelatedSlider from '../components/sliders/RelatedSlider';
 import ProductSummary from '../components/product/ProductSummary';
 import Services from '../components/common/Services';
+import axios from '../api/axios';
 
 const ProductDetails = () => {
   useDocTitle('Product Details');
@@ -32,13 +33,38 @@ const ProductDetails = () => {
 
   const [previewImg, setPreviewImg] = useState('');
 
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
   useEffect(() => {
     if (!product) return;
-
+    console.log('reviews in ProductSummary:', reviews);
     // set the first image when product changes
     setPreviewImg(product.images?.[0] || '');
     handleActive(0);
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+
+        const res = await axios.get(`api/products/${id}/reviews/`);
+
+        // keep only 5 reviews
+        setReviews(res.data.reviews?.slice(0, 5) || []);
+      } catch (error) {
+        console.error('Failed to load reviews:', error);
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, [id]);
 
   const handleAddItem = () => {
     if (!product) return;
@@ -188,7 +214,11 @@ const ProductDetails = () => {
         </div>
       </section>
 
-      <ProductSummary {...product} />
+      <ProductSummary
+        {...product}
+        reviews={reviews}
+        reviewsLoading={reviewsLoading}
+      />
 
       <section id="related_products" className="section">
         <div className="container">

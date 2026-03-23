@@ -1,0 +1,131 @@
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
+import json
+
+from ..models.review import Review
+from ..models.product import Product
+from ..models.order import OrderItem
+from .profile_views import get_current_user
+
+
+@csrf_exempt
+def create_review(request, product_id):
+    # get logged-in user
+    user = get_current_user(request)
+
+    if not user:
+        return JsonResponse({"message": "Unauthorized"}, status=401)
+
+    # only POST allowed
+    if request.method != "POST":
+        return JsonResponse({"message": "Method not allowed"}, status=405)
+
+    # parse request body
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"message": "Invalid JSON"}, status=400)
+
+    # get input values
+    rating = data.get("rating")
+    content = data.get("content", "").strip()
+
+    # check required fields
+    if rating is None:
+        return JsonResponse({"message": "Rating is required"}, status=400)
+
+    if not content:
+        return JsonResponse({"message": "Content is required"}, status=400)
+
+    # convert rating
+    try:
+        rating = int(rating)
+    except (ValueError, TypeError):
+        return JsonResponse({"message": "Rating must be a number"}, status=400)
+
+    # check rating range
+    if rating < 1 or rating > 5:
+        return JsonResponse({"message": "Rating must be between 1 and 5"}, status=400)
+
+    # check product exists
+    try:
+        product = Product.objects.get(id=product_id)
+    except Product.DoesNotExist:
+        return JsonResponse({"message": "Product not found"}, status=404)
+
+    # check duplicate review
+    already_reviewed = Review.objects.filter(user=user, product=product).exists()
+    if already_reviewed:
+        return JsonResponse({"message": "You already reviewed this product"}, status=400)
+
+    # check purchase history
+    purchased = OrderItem.objects.filter(
+        order__user=user,
+        order__status__in=["paid", "shipped"],
+        product=product
+    ).exists()
+
+    if not purchased:
+        return JsonResponse({"message": "You can only review purchased products"}, status=403)
+
+    # create review
+    with transaction.atomic():
+        review = Review.objects.create(
+            user=user,
+            product=product,
+            rating=rating,
+            content=content
+        )
+
+    # return result
+    return JsonResponse({
+        "ok": True,
+        "message": "Review created successfully",
+        "review": {
+            "id": review.id,
+            "user_id": review.user.id,
+            "product_id": review.product.id,
+            "rating": review.rating,
+            "content": review.content,
+            "created_at": review.created_at,
+            "updated_at": review.updated_at,
+        }
+    }, status=201)
+
+
+def get_reviews(request, product_id):
+    # only GET allowed
+    if request.method != "GET":
+        return JsonResponse({"message": "Method not allowed"}, status=405)
+
+    # check product exists
+    try:
+        product = Product.objects.get(id=product_id)
+    except Product.DoesNotExist:
+        return JsonResponse({"message": "Product not found"}, status=404)
+
+    # get review list
+    reviews = Review.objects.filter(product=product).select_related("user").order_by("-created_at")
+
+    review_list = []
+
+    for review in reviews:
+        review_list.append({
+            "id": review.id,
+            "user_id": review.user.id,
+            "user_name": review.user.name,
+            "rating": review.rating,
+            "content": review.content,
+            "created_at": review.created_at,
+            "updated_at": review.updated_at,
+        })
+
+    # return result
+    return JsonResponse({
+        "ok": True,
+        "product_id": product.id,
+        "avg_rating": product.avg_rating,
+        "review_count": product.review_count,
+        "reviews": review_list,
+    }, status=200)

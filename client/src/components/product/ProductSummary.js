@@ -1,13 +1,23 @@
 import React, { useMemo } from 'react';
-import reviewsData from '../../data/reviewsData';
 import useActive from '../../hooks/useActive';
 import ProductReviews from './ProductReviews';
 
 const ProductSummary = (props) => {
-  const { brand, title, info, category, flavor, weight, qty, serve } = props;
+  const {
+    brand,
+    title,
+    info,
+    category,
+    flavor,
+    weight,
+    qty,
+    serve,
+    reviews = [],
+    reviewsLoading = false,
+  } = props;
+
   const { active, handleActive, activeClass } = useActive('specs');
 
-  // ✅ 빈 값은 자동으로 제거해서 "깔끔한 스펙 리스트" 만들기
   const specItems = useMemo(() => {
     const items = [
       { label: 'Brand', value: brand },
@@ -71,7 +81,7 @@ const ProductSummary = (props) => {
             <div className="prod_overview">
               <h3>
                 <span>{shortTitle}</span>
-                {shortInfo ? ` — ${shortInfo}` : '' }
+                {shortInfo ? ` — ${shortInfo}` : ''}
               </h3>
 
               <ul>
@@ -82,7 +92,7 @@ const ProductSummary = (props) => {
 
               <p>
                 Add <b>{shortTitle}</b>
-                {category ? ` (${category})` : ''} to your routine for consistent,
+                {category ? ` ({category})` : ''} to your routine for consistent,
                 convenient nutrition. Ideal for post-workout recovery or as a
                 protein boost throughout the day.
               </p>
@@ -91,11 +101,23 @@ const ProductSummary = (props) => {
 
           {active === 'reviews' && (
             <div className="prod_reviews">
-              <ul>
-                {reviewsData.map((item) => (
-                  <ProductReviews key={item.id} {...item} />
-                ))}
-              </ul>
+              {reviewsLoading ? (
+                <p>Loading reviews...</p>
+              ) : reviews.length === 0 ? (
+                <p>No reviews yet.</p>
+              ) : (
+                <ul>
+                  {reviews.map((item) => (
+                    <ProductReviews
+                      key={item.id}
+                      name={item.user_name}
+                      date={new Date(item.created_at).toLocaleDateString()}
+                      review={item.content}
+                      rateCount={item.rating}
+                    />
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>

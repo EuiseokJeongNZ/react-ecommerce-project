@@ -1,7 +1,7 @@
 # urls.py
 
 from django.urls import path
-from .views import product_views, auth_views, address_views, profile_views, order_views
+from .views import product_views, auth_views, address_views, profile_views, order_views, review_views
 
 urlpatterns = [
     path("health/", product_views.health),
@@ -15,4 +15,6 @@ urlpatterns = [
     path("address/<int:address_id>/", address_views.address_detail),
     path("profile/", profile_views.profile),
     path("orders/", order_views.order_list_create),
+    path("products/<int:product_id>/reviews/", review_views.get_reviews),
+    path("products/<int:product_id>/reviews/create/", review_views.create_review),
 ]
