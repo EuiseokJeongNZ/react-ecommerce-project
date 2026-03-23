@@ -32,8 +32,8 @@ class Product(models.Model):
 
     stock = models.IntegerField(default=0)
 
-    ratings = models.IntegerField(default=0)
-    rate_count = models.FloatField(default=5.0)
+    avg_rating = models.FloatField(default=0)  # average rating
+    review_count = models.IntegerField(default=0)  # number of reviews
 
     is_active = models.BooleanField(default=True)
 

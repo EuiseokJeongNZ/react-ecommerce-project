@@ -23,11 +23,11 @@ def product_list(request):
             "final_price": str(product.final_price),  # Convert Decimal to string
             "original_price": str(product.original_price) if product.original_price else None,
             "brand": product.brand,
-            "ratings": product.ratings,
+            "ratings": product.review_count,
             "flavor": product.flavor,
             "category": product.category,
             "info": product.info,
-            "rate_count": product.rate_count,
+            "rate_count": product.avg_rating,
             "is_active": product.is_active,
             # Get all image URLs for this product
             "images": [img.image.url for img in product.images.all()],

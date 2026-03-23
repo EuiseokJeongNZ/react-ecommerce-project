@@ -100,7 +100,7 @@ const Profile = () => {
                     name="email"
                     className="input_field"
                     value={formData.email}
-                    readOnly
+                    // readOnly
                     />
                     <label className="input_label">Email</label>
                   </div>
