@@ -25,17 +25,3 @@ const App = () => {
 };
 
 export default App;
-
-// // // src/App.js
-// import TestPage from "./pages/TestPage";
-
-// function App() {
-//   return (
-//     <div>
-//       <h1>메인 페이지</h1>
-//       <TestPage />
-//     </div>
-//   );
-// }
-
-// export default App;

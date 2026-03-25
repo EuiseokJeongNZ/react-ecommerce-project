@@ -180,6 +180,7 @@ const Addresses = () => {
                       className="input_field"
                       value={formData.addr2}
                       onChange={handleChange}
+                      // required // this line should be fixed since address 2 doesnot work for hover unlike other input boxes
                     />
                     <label className="input_label">Address Line 2</label>
                   </div>
