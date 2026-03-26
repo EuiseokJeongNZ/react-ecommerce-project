@@ -19,8 +19,8 @@ const filtersReducer = (state, action) => {
 
       return {
         ...state,
-        products,              // ✅ 원본 저장
-        allProducts: products, // ✅ 처음엔 원본 그대로 보여줌
+        products,
+        allProducts: products,
         selectedPrice: {
           ...state.selectedPrice,
           price: maxPrice,
@@ -78,9 +78,9 @@ const filtersReducer = (state, action) => {
     case 'FILTERED_PRODUCTS':
       return {
         ...state,
-        allProducts: action.payload.updatedProducts, // ✅ 화면용만 바꿈
+        allProducts: action.payload.updatedProducts,
       };
-      
+
     case 'MOB_SORT_VISIBILITY':
       return {
         ...state,
@@ -103,10 +103,54 @@ const filtersReducer = (state, action) => {
       return {
         ...state,
         sortedValue: null,
-        // 필요하면 여기서 brands/category 체크도 초기화 가능
-        // updatedBrandsMenu: state.updatedBrandsMenu.map(b => ({...b, checked:false})),
-        // updatedCategoryMenu: state.updatedCategoryMenu.map(c => ({...c, checked:false})),
-        // selectedPrice: { ...state.selectedPrice, price: state.selectedPrice.maxPrice },
+      };
+
+    /* =========================
+       REVIEW
+    ========================= */
+
+    case 'FETCH_REVIEWS_START':
+      return {
+        ...state,
+        reviewsLoading: true,
+        reviewsError: null,
+      };
+
+    case 'FETCH_REVIEWS_ERROR':
+      return {
+        ...state,
+        reviewsLoading: false,
+        reviewsError: action.payload.error,
+        reviews: [],
+        originalReviews: [],
+      };
+
+    case 'LOAD_PRODUCT_REVIEWS':
+      return {
+        ...state,
+        reviewsLoading: false,
+        reviewsError: null,
+        reviews: action.payload.reviews,
+        originalReviews: action.payload.reviews,
+      };
+
+    case 'SET_REVIEW_SORTED_VALUE':
+      return {
+        ...state,
+        reviewSortValue: action.payload.sortValue,
+      };
+
+    case 'FILTERED_REVIEWS':
+      return {
+        ...state,
+        reviews: action.payload.updatedReviews,
+      };
+
+    case 'CLEAR_REVIEW_FILTERS':
+      return {
+        ...state,
+        reviewSortValue: 'Highest Rating',
+        reviews: [...state.originalReviews],
       };
 
     default:

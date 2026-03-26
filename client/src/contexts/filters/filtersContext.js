@@ -1,6 +1,7 @@
 import { createContext, useEffect, useReducer } from 'react';
 import { brandsMenu, categoryMenu } from '../../data/filterBarData';
 import filtersReducer from './filtersReducer';
+import api from '../../api/axios';
 
 const filtersContext = createContext();
 
@@ -26,6 +27,13 @@ const initialState = {
   },
   loading: false,
   error: null,
+
+  // review state
+  reviews: [],
+  originalReviews: [],
+  reviewSortValue: 'Highest Rating',
+  reviewsLoading: false,
+  reviewsError: null,
 };
 
 const FiltersProvider = ({ children }) => {
@@ -51,7 +59,9 @@ const FiltersProvider = ({ children }) => {
         const images =
           Array.isArray(p.images) && p.images.length > 0
             ? p.images.map((imgPath) =>
-                String(imgPath).startsWith('http') ? imgPath : `${API_BASE}${imgPath}`
+                String(imgPath).startsWith('http')
+                  ? imgPath
+                  : `${API_BASE}${imgPath}`
               )
             : ['https://placehold.co/600x600?text=No+Image'];
 
@@ -64,15 +74,12 @@ const FiltersProvider = ({ children }) => {
           category: p.category ?? '',
           info: p.info ?? '',
           flavor: p.flavor ?? '',
-
           finalPrice: Number(p.final_price ?? 0),
-          originalPrice: p.original_price != null ? Number(p.original_price) : null,
-
+          originalPrice:
+            p.original_price != null ? Number(p.original_price) : null,
           rateCount: Math.max(0, Math.round(Number(p.rate_count ?? 0))),
-
           ratings: Number(p.ratings ?? 0),
           isActive: Boolean(p.is_active),
-
           images,
           path: DEFAULT_PRODUCT_PATH,
         };
@@ -106,7 +113,40 @@ const FiltersProvider = ({ children }) => {
     }
   };
 
-  // 기존 useEffect 유지 (단 fetchProducts만 호출)
+  const fetchProductReviews = async (productId) => {
+    if (!productId) return;
+
+    try {
+      dispatch({ type: 'FETCH_REVIEWS_START' });
+
+      const res = await api.get(`/api/products/${productId}/reviews/`);
+      const rawReviews = Array.isArray(res.data?.reviews) ? res.data.reviews : [];
+
+      const reviews = rawReviews.map((item) => ({
+        id: item.id,
+        name: item.user_name || 'Anonymous',
+        review: item.content || '',
+        rateCount: Number(item.rating ?? 0),
+        date: item.created_at,
+      }));
+
+      dispatch({
+        type: 'LOAD_PRODUCT_REVIEWS',
+        payload: { reviews },
+      });
+    } catch (error) {
+      dispatch({
+        type: 'FETCH_REVIEWS_ERROR',
+        payload: {
+          error:
+            error?.response?.data?.message ||
+            error.message ||
+            'Failed to load reviews',
+        },
+      });
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -114,7 +154,6 @@ const FiltersProvider = ({ children }) => {
   const applyFilters = () => {
     let updatedProducts = [...state.products];
 
-    /*==== Sorting ====*/
     if (state.sortedValue) {
       switch (state.sortedValue) {
         case 'Latest':
@@ -122,7 +161,9 @@ const FiltersProvider = ({ children }) => {
           break;
 
         case 'Featured':
-          updatedProducts = updatedProducts.filter((item) => item.tag === 'featured-product');
+          updatedProducts = updatedProducts.filter(
+            (item) => item.tag === 'featured-product'
+          );
           break;
 
         case 'Top Rated':
@@ -130,19 +171,21 @@ const FiltersProvider = ({ children }) => {
           break;
 
         case 'Price(Lowest First)':
-          updatedProducts = updatedProducts.sort((a, b) => a.finalPrice - b.finalPrice);
+          updatedProducts = updatedProducts.sort(
+            (a, b) => a.finalPrice - b.finalPrice
+          );
           break;
 
         case 'Price(Highest First)':
-          updatedProducts = updatedProducts.sort((a, b) => b.finalPrice - a.finalPrice);
+          updatedProducts = updatedProducts.sort(
+            (a, b) => b.finalPrice - a.finalPrice
+          );
           break;
 
         default:
-          throw new Error('Wrong Option Selected');
+          break;
       }
     }
-
-    /*==== Filtering ====*/
 
     const checkedBrandItems = state.updatedBrandsMenu
       .filter((item) => item.checked)
@@ -179,10 +222,45 @@ const FiltersProvider = ({ children }) => {
   useEffect(() => {
     if (!state.products.length) return;
     applyFilters();
-  }, [state.products, state.sortedValue, state.updatedBrandsMenu, state.updatedCategoryMenu, state.selectedPrice]);
+  }, [
+    state.products,
+    state.sortedValue,
+    state.updatedBrandsMenu,
+    state.updatedCategoryMenu,
+    state.selectedPrice,
+  ]);
+
+  const applyReviewSort = () => {
+    let updatedReviews = [...state.originalReviews];
+
+    switch (state.reviewSortValue) {
+      case 'Highest Rating':
+        updatedReviews.sort((a, b) => b.rateCount - a.rateCount);
+        break;
+
+      case 'Lowest Rating':
+        updatedReviews.sort((a, b) => a.rateCount - b.rateCount);
+        break;
+
+      default:
+        break;
+    }
+
+    dispatch({
+      type: 'FILTERED_REVIEWS',
+      payload: { updatedReviews },
+    });
+  };
+
+  useEffect(() => {
+    applyReviewSort();
+  }, [state.originalReviews, state.reviewSortValue]);
 
   const setSortedValue = (sortValue) =>
     dispatch({ type: 'SET_SORTED_VALUE', payload: { sortValue } });
+
+  const setReviewSortedValue = (sortValue) =>
+    dispatch({ type: 'SET_REVIEW_SORTED_VALUE', payload: { sortValue } });
 
   const handleBrandsMenu = (id) =>
     dispatch({ type: 'CHECK_BRANDS_MENU', payload: { id } });
@@ -202,20 +280,29 @@ const FiltersProvider = ({ children }) => {
     dispatch({ type: 'MOB_FILTER_VISIBILITY', payload: { toggle } });
 
   const handleClearFilters = () => dispatch({ type: 'CLEAR_FILTERS' });
+  const handleClearReviewFilters = () =>
+    dispatch({ type: 'CLEAR_REVIEW_FILTERS' });
 
   const values = {
     ...state,
     setSortedValue,
+    setReviewSortedValue,
     handleBrandsMenu,
     handleCategoryMenu,
     handlePrice,
     handleMobSortVisibility,
     handleMobFilterVisibility,
     handleClearFilters,
+    handleClearReviewFilters,
     fetchProducts,
+    fetchProductReviews,
   };
 
-  return <filtersContext.Provider value={values}>{children}</filtersContext.Provider>;
+  return (
+    <filtersContext.Provider value={values}>
+      {children}
+    </filtersContext.Provider>
+  );
 };
 
 export default filtersContext;

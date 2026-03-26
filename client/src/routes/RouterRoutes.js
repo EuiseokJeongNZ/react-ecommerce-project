@@ -10,6 +10,7 @@ import Addresses from '../pages/Addresses';
 import Profile from "../pages/Profile";
 import Orders from '../pages/Orders';
 import Checkout from  "../pages/Checkout";
+import ReviewPage from '../pages/ReviewPage';
 
 const RouterRoutes = () => {
 
@@ -26,6 +27,7 @@ const RouterRoutes = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/product-details/:productId/reviews" element={<ReviewPage />} />
                 <Route path="*" element={<ErrorPage />} />
             </Routes>
         </>
