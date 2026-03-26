@@ -47,16 +47,20 @@ const ReviewPage = () => {
 
   if (loading && !products.length) {
     return (
-      <section className="section">
-        <div className="container">Loading product...</div>
+      <section id="review_page" className="section">
+        <div className="container">
+          <p className="review_page_state">Loading product...</p>
+        </div>
       </section>
     );
   }
 
   if (error && !products.length) {
     return (
-      <section className="section">
-        <div className="container">{error}</div>
+      <section id="review_page" className="section">
+        <div className="container">
+          <p className="review_page_state">{error}</p>
+        </div>
       </section>
     );
   }
@@ -64,40 +68,31 @@ const ReviewPage = () => {
   return (
     <section id="review_page" className="section">
       <div className="container">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-            gap: '16px',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div>
-            <h2 style={{ marginBottom: '8px' }}>
+        <div className="review_page_top">
+          <div className="review_page_heading">
+            <h2>
               {product ? `${product.title} Reviews` : 'Product Reviews'}
             </h2>
-            <p style={{ margin: 0 }}>
-              Sort reviews by rating
-            </p>
+            <p>Sort reviews by rating</p>
           </div>
 
-          <select
-            value={reviewSortValue}
-            onChange={(e) => setReviewSortedValue(e.target.value)}
-          >
-            <option value="Highest Rating">Highest Rating</option>
-            <option value="Lowest Rating">Lowest Rating</option>
-          </select>
+          <div className="review_page_sort">
+            <select
+              value={reviewSortValue}
+              onChange={(e) => setReviewSortedValue(e.target.value)}
+            >
+              <option value="Highest Rating">Highest Rating</option>
+              <option value="Lowest Rating">Lowest Rating</option>
+            </select>
+          </div>
         </div>
 
         {reviewsLoading ? (
-          <p>Loading reviews...</p>
+          <p className="review_page_state">Loading reviews...</p>
         ) : reviewsError ? (
-          <p>{reviewsError}</p>
+          <p className="review_page_state">{reviewsError}</p>
         ) : reviews.length ? (
-          <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+          <ul className="review_page_list">
             {reviews.map((item) => (
               <ProductReviews
                 key={item.id}

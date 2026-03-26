@@ -1,0 +1,83 @@
+@use "../base/index" as *;
+
+#review_page {
+    padding-top: 6rem;
+}
+
+.review_page_top {
+    @include flexbox(space-between, center);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid rgba($color: #ffffff, $alpha: 0.08);
+
+    @include devices(md) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.review_page_heading {
+    h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        line-height: 1.25;
+        color: var(--white-color);
+        margin-bottom: 0.5rem;
+
+        @include devices(md) {
+            font-size: 1.8rem;
+        }
+
+        @include devices(sm) {
+            font-size: 1.45rem;
+        }
+    }
+
+    p {
+        font-size: 1rem;
+        color: var(--text-muted);
+    }
+}
+
+.review_page_sort {
+    flex-shrink: 0;
+
+    select {
+        min-width: 12rem;
+        height: 2.8rem;
+        padding: 0 0.9rem;
+        border: 1px solid rgba($color: #ffffff, $alpha: 0.14);
+        border-radius: 4px;
+        background-color: var(--bg-color-2);
+        color: var(--white-color);
+        font-size: 0.95rem;
+        outline: none;
+        cursor: pointer;
+        @include transition(border-color, 0.2s);
+
+        &:focus {
+            border-color: rgba($color: #ffffff, $alpha: 0.35);
+        }
+    }
+
+    @include devices(md) {
+        width: 100%;
+
+        select {
+            width: 100%;
+        }
+    }
+}
+
+.review_page_list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.review_page_state {
+    font-size: 1rem;
+    color: var(--text-muted);
+    padding: 1rem 0;
+}
