@@ -4,6 +4,19 @@ import { IoMdStar } from 'react-icons/io';
 const ProductReviews = (props) => {
     const { name, date, review, rateCount } = props;
 
+    const formatDateTime = (dateString) => {
+        if (!dateString) return "";
+
+        return new Date(dateString).toLocaleString("en-NZ", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+    };
+
     return (
         <li className="product_review_item">
             <div className="user_info">
@@ -20,7 +33,7 @@ const ProductReviews = (props) => {
                             }
                         </span>
                         <span>|</span>
-                        <span className="date">{date}</span>
+                        <span className="date">{formatDateTime(date)}</span>
                     </div>
                 </div>
             </div>

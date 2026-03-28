@@ -18,12 +18,17 @@ export const dropdownMenu = [
     },
     {
         id: 4,
-        link: "Saved Cards",
-        path: "*",
+        link: "My Reviews",
+        path: "/my-reviews",
     },
-    {
-        id: 5,
-        link: "Gift Cards",
-        path: "*",
-    },
+    // {
+    //     id: 4,
+    //     link: "Saved Cards",
+    //     path: "*",
+    // },
+    // {
+    //     id: 5,
+    //     link: "Gift Cards",
+    //     path: "*",
+    // },
 ];

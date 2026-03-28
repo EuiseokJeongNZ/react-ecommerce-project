@@ -1,15 +1,24 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { BsExclamationCircle } from 'react-icons/bs';
 import filtersContext from '../contexts/filters/filtersContext';
 import ProductReviews from '../components/product/ProductReviews';
 import EmptyView from '../components/common/EmptyView';
 import useDocTitle from '../hooks/useDocTitle';
+import axios from '../api/axios';
+import { IoMdStar } from "react-icons/io";
 
 const ReviewPage = () => {
   useDocTitle('Reviews');
 
   const { productId } = useParams();
+
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [content, setContent] = useState("");
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  
 
   const {
     products,
@@ -43,6 +52,32 @@ const ReviewPage = () => {
   const formatDate = (value) => {
     if (!value) return '';
     return new Date(value).toLocaleDateString();
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+
+    try {
+      setSubmitLoading(true);
+      setSubmitError("");
+
+      await axios.post(`/api/products/${productId}/reviews/create/`, {
+        rating,
+        content,
+      });
+
+      setRating(5);
+      setContent("");
+
+      fetchProductReviews(productId);
+    } catch (err) {
+      console.error("Failed to create review:", err);
+      setSubmitError(
+        err?.response?.data?.message || "Failed to submit review."
+      );
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   if (loading && !products.length) {
@@ -109,6 +144,47 @@ const ReviewPage = () => {
             msg="No reviews found"
           />
         )}
+
+        <div className="review_write_box">
+          <h3>Write a Review</h3>
+
+          <form onSubmit={handleSubmitReview} className="review_write_form">
+            <div className="review_form_group">
+              <label>Rating</label>
+              <div className="review_star_input">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <IoMdStar
+                    key={star}
+                    className={
+                      star <= (hoverRating || rating) ? "star active" : "star"
+                    }
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => setRating(star)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="review_form_group">
+              <label>Review</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows="5"
+                placeholder="Write your review here"
+              />
+            </div>
+
+            {submitError ? (
+              <p className="review_form_error">{submitError}</p>
+            ) : null}
+
+            <button className="btn" type="submit" disabled={submitLoading}>
+              {submitLoading ? "Submitting..." : "Submit Review"}
+            </button>
+          </form>
+        </div>
       </div>
     </section>
   );

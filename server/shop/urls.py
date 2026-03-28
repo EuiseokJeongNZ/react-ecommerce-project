@@ -17,4 +17,7 @@ urlpatterns = [
     path("orders/", order_views.order_list_create),
     path("products/<int:product_id>/reviews/", review_views.get_reviews),
     path("products/<int:product_id>/reviews/create/", review_views.create_review),
+    path("reviews/<int:review_id>/delete/", review_views.delete_my_review),
+    path("reviews/<int:review_id>/update/", review_views.update_my_review),
+    path("reviews/my/", review_views.get_my_reviews),
 ]

@@ -129,3 +129,120 @@ def get_reviews(request, product_id):
         "review_count": product.review_count,
         "reviews": review_list,
     }, status=200)
+
+
+def get_my_reviews(request):
+    # only GET allowed
+    if request.method != "GET":
+        return JsonResponse({"message": "Method not allowed"}, status=405)
+
+    # get logged-in user
+    user = get_current_user(request)
+
+    if not user:
+        return JsonResponse({"message": "Unauthorized"}, status=401)
+
+    # get my reviews
+    reviews = (
+        Review.objects
+        .filter(user=user)
+        .select_related("product")
+        .order_by("-created_at")
+    )
+
+    review_list = []
+
+    for review in reviews:
+        first_image = review.product.images.order_by("id").first()
+
+        review_list.append({
+            "id": review.id,
+            "product_id": review.product.id,
+            "product_title": review.product.title,
+            "product_image": first_image.image.url if first_image and first_image.image else "",
+            "rating": review.rating,
+            "content": review.content,
+            "created_at": review.created_at,
+            "updated_at": review.updated_at,
+        })
+
+    return JsonResponse({
+        "ok": True,
+        "reviews": review_list,
+    }, status=200)
+
+
+@csrf_exempt
+def delete_my_review(request, review_id):
+    # only DELETE allowed
+    if request.method != "DELETE":
+        return JsonResponse({"message": "Method not allowed"}, status=405)
+
+    # get logged-in user
+    user = get_current_user(request)
+
+    if not user:
+        return JsonResponse({"message": "Unauthorized"}, status=401)
+
+    try:
+        review = Review.objects.get(id=review_id, user=user)
+    except Review.DoesNotExist:
+        return JsonResponse({"message": "Review not found"}, status=404)
+
+    review.delete()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Review deleted successfully",
+    }, status=200)
+
+@csrf_exempt
+def update_my_review(request, review_id):
+    # only PUT allowed
+    if request.method != "PUT":
+        return JsonResponse({"message": "Method not allowed"}, status=405)
+
+    # get logged-in user
+    user = get_current_user(request)
+
+    if not user:
+        return JsonResponse({"message": "Unauthorized"}, status=401)
+
+    try:
+        review = Review.objects.get(id=review_id, user=user)
+    except Review.DoesNotExist:
+        return JsonResponse({"message": "Review not found"}, status=404)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"message": "Invalid JSON"}, status=400)
+
+    rating = data.get("rating")
+    content = data.get("content", "").strip()
+
+    if not rating or not content:
+        return JsonResponse({"message": "Rating and content are required"}, status=400)
+
+    try:
+        rating = int(rating)
+    except ValueError:
+        return JsonResponse({"message": "Rating must be a number"}, status=400)
+
+    if rating < 1 or rating > 5:
+        return JsonResponse({"message": "Rating must be between 1 and 5"}, status=400)
+
+    review.rating = rating
+    review.content = content
+    review.save()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Review updated successfully",
+        "review": {
+            "id": review.id,
+            "rating": review.rating,
+            "content": review.content,
+            "updated_at": review.updated_at,
+        }
+    }, status=200)
