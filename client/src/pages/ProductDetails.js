@@ -106,7 +106,7 @@ const ProductDetails = () => {
   if (!product) {
     return (
       <div className="section">
-        <div className="container">Product not found!</div>
+        <div className="container">Product not found</div>
       </div>
     );
   }
