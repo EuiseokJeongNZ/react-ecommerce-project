@@ -11,7 +11,7 @@ from .profile_views import get_current_user
 
 @csrf_exempt
 def create_review(request, product_id):
-    print("calling create_review")
+    print("calling create_review again")
     # get logged-in user
     user = get_current_user(request)
 
