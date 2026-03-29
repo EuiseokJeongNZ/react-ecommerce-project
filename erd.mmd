@@ -1,93 +1,96 @@
 erDiagram
     USER {
-      int id PK
-      string email "unique"
-      string password_hash
-      string name
-      string phone
-      string role "customer|admin"
-      datetime created_at
+        int id PK
+        string email
+        string password
+        string name
+        string phone
+        string role
+        boolean is_active
+        boolean is_staff
+        datetime created_at
     }
 
     PRODUCT {
-      int id PK
-      string title
-      string tagline
-      string brand
-      string description
-      decimal final_price
-      decimal original_price
-      int stock
-      boolean is_active
-      float avg_rating
-      int review_count
-      datetime created_at
-      datetime updated_at
+        int id PK
+        string tag
+        string tagline
+        string brand
+        string title
+        string info
+        string category
+        string flavor
+        string weight
+        string serve
+        decimal final_price
+        decimal original_price
+        int stock
+        float avg_rating
+        int review_count
+        boolean is_active
+        datetime created_at
     }
 
     PRODUCT_IMAGE {
-      int id PK
-      int product_id FK
-      string image_url
-      int sort_order
-      boolean is_primary
+        int id PK
+        int product_id FK
+        string image
     }
 
     ADDRESS {
-      int id PK
-      int user_id FK
-      string recipient
-      string phone
-      string zip
-      string addr1
-      string addr2
-      boolean is_default
-      datetime created_at
+        int id PK
+        int user_id FK
+        string recipient
+        string phone
+        string zip
+        string addr1
+        string addr2
+        boolean is_default
+        datetime created_at
+        datetime updated_at
     }
 
-    "ORDER" {
-      int id PK
-      int user_id FK
-      string order_number "unique"
-      string status "pending|paid|shipped|cancelled|refunded"
-      decimal subtotal
-      decimal shipping_fee
-      decimal discount
-      decimal total
-      string shipping_snapshot_json "required (주소 스냅샷)"
-      datetime created_at
-      datetime updated_at
+    ORDER {
+        int id PK
+        int user_id FK
+        string order_number
+        string status
+        decimal subtotal
+        decimal shipping_fee
+        decimal discount
+        decimal total
+        string shipping_snapshot
+        datetime created_at
+        datetime updated_at
     }
 
     ORDER_ITEM {
-      int id PK
-      int order_id FK
-      int product_id FK "nullable (상품 삭제 대비)"
-      string title_snapshot
-      decimal unit_price_snapshot
-      string image_url_snapshot "optional"
-      int quantity
-      decimal line_total
+        int id PK
+        int order_id FK
+        int product_id FK
+        string title_snapshot
+        decimal unit_price_snapshot
+        string image_url_snapshot
+        int quantity
+        decimal line_total
     }
 
     REVIEW {
-      int id PK
-      int user_id FK
-      int product_id FK
-      int rating "1~5"
-      string content
-      datetime created_at
-      string uq_user_product "UNIQUE(user_id, product_id)"
+        int id PK
+        int user_id FK
+        int product_id FK
+        int rating
+        string content
+        datetime created_at
+        datetime updated_at
     }
 
-    %% Relations
     USER ||--o{ ADDRESS : has
-
-    USER ||--o{ "ORDER" : places
-    "ORDER" ||--o{ ORDER_ITEM : includes
-    PRODUCT ||--o{ ORDER_ITEM : ordered_as
+    USER ||--o{ ORDER : places
+    USER ||--o{ REVIEW : writes
 
     PRODUCT ||--o{ PRODUCT_IMAGE : has
-
-    USER ||--o{ REVIEW : writes
+    PRODUCT ||--o{ ORDER_ITEM : ordered_as
     PRODUCT ||--o{ REVIEW : receives
+
+    ORDER ||--o{ ORDER_ITEM : includes
