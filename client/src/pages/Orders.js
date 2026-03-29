@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BsBagCheck, BsBoxSeam, BsTruck, BsXCircle } from 'react-icons/bs';
 import api from '../api/axios';
+import { Link } from "react-router-dom";
 import useDocTitle from '../hooks/useDocTitle';
 import SectionsHead from '../components/common/SectionsHead';
 import EmptyView from '../components/common/EmptyView';
@@ -26,6 +27,19 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
+  const formatDateTime = (dateString) => {
+      if (!dateString) return "";
+
+      return new Date(dateString).toLocaleString("en-NZ", {
+          timeZone: "Pacific/Auckland",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+      });
+  };
   const getStatusIcon = (status) => {
     if (status === 'paid') return <BsBagCheck />;
     if (status === 'shipped') return <BsTruck />;
@@ -51,7 +65,7 @@ const Orders = () => {
                     <div>
                       <h4>{order.order_number}</h4>
                       <p>
-                        Placed on {new Date(order.created_at).toLocaleDateString()}
+                        Placed on {formatDateTime(order.created_at)}
                       </p>
                     </div>
 
@@ -64,21 +78,21 @@ const Orders = () => {
                   </div>
 
                   <div className="separator"></div>
+                    <div className="order_items">
+                      {order.items.map((item) => (
+                        <div className="order_item" key={item.id}>
+                          <div>
+                            <Link to={`/product-details/${item.product_id}`}>
+                              <h5>{item.title_snapshot}</h5>
+                            </Link>
+                            <p>Qty: {item.quantity}</p>
+                            <p>Unit Price: NZ${item.unit_price_snapshot}</p>
+                          </div>
 
-                  <div className="order_items">
-                    {order.items.map((item) => (
-                      <div className="order_item" key={item.id}>
-                        <div>
-                          <h5>{item.title_snapshot}</h5>
-                          <p>Qty: {item.quantity}</p>
-                          <p>Unit Price: NZ${item.unit_price_snapshot}</p>
+                          <strong>NZ${item.line_total}</strong>
                         </div>
-
-                        <strong>NZ${item.line_total}</strong>
-                      </div>
-                    ))}
-                  </div>
-
+                      ))}
+                    </div>
                   <div className="separator"></div>
 
                   <div className="order_card_bottom">

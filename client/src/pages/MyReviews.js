@@ -94,18 +94,20 @@ const MyReviews = () => {
         }
     };
 
-    const formatDateTime = (dateString) => {
-        if (!dateString) return "";
 
-        return new Date(dateString).toLocaleString("en-NZ", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-        });
-    };
+  const formatDateTime = (dateString) => {
+      if (!dateString) return "";
+
+      return new Date(dateString).toLocaleString("en-NZ", {
+          timeZone: "Pacific/Auckland",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+      });
+  };
 
     if (loading) {
         return (

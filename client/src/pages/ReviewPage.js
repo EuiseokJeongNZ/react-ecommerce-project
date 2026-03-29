@@ -49,17 +49,19 @@ const ReviewPage = () => {
   const product =
     products.find((item) => String(item.id) === String(productId)) || null;
 
-  const formatDate = (dateString) => {
-        if (!dateString) return "";
 
-        return new Date(dateString).toLocaleString("en-NZ", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-        });
+  const formatDateTime = (dateString) => {
+      if (!dateString) return "";
+
+      return new Date(dateString).toLocaleString("en-NZ", {
+          timeZone: "Pacific/Auckland",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+      });
   };
 
   const handleSubmitReview = async (e) => {
@@ -140,7 +142,7 @@ const ReviewPage = () => {
               <ProductReviews
                 key={item.id}
                 name={item.name}
-                date={formatDate(item.date)}
+                date={formatDateTime(item.date)}
                 review={item.review}
                 rateCount={item.rateCount}
               />
