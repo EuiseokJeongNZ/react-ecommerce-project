@@ -44,7 +44,7 @@ const Header = () => {
         <div className="container">
           <div className="navbar">
             <h2 className="nav_logo">
-              <Link to="/">PurePro Testing</Link>
+              <Link to="/">PurePro Testing Again</Link>
             </h2>
 
             <nav className="nav_actions">
