@@ -166,7 +166,7 @@ const ProductDetails = () => {
                   ))}
                 </span>
                 <span>|</span>
-                <Link to={`/product-details/${id}/reviews`}>{ratings} Ratings</Link>
+                <Link to={`/product-details/${id}/reviews`}>{ratings} Reviews</Link>
               </div>
 
               <div className="separator"></div>
