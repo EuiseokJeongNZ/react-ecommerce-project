@@ -49,9 +49,17 @@ const ReviewPage = () => {
   const product =
     products.find((item) => String(item.id) === String(productId)) || null;
 
-  const formatDate = (value) => {
-    if (!value) return '';
-    return new Date(value).toLocaleDateString();
+  const formatDate = (dateString) => {
+        if (!dateString) return "";
+
+        return new Date(dateString).toLocaleString("en-NZ", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
   };
 
   const handleSubmitReview = async (e) => {
