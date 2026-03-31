@@ -5,28 +5,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from decimal import Decimal
 from datetime import datetime
-from rest_framework_simplejwt.tokens import AccessToken
-from ..models.user import User
+from ..utils.auth import get_current_user
 from ..models.address import Address
 from ..models.product import Product
 from ..models.order import Order, OrderItem
 import json
-
-
-# get logged-in user from jwt access token in cookie
-def get_current_user(request):
-    access_token = request.COOKIES.get("access")
-
-    if not access_token:
-        return None
-
-    try:
-        token = AccessToken(access_token)
-        user_id = token["user_id"]
-        return User.objects.get(id=user_id)
-    except Exception:
-        return None
-
 
 @csrf_exempt
 def order_list_create(request):
@@ -35,7 +18,7 @@ def order_list_create(request):
     user = get_current_user(request)
 
     if not user:
-        return JsonResponse({"message": "Unauthorized"}, status=401)
+        return JsonResponse({"ok": False, "message": "Unauthorized"}, status=401)
 
     # get user's order list
     if request.method == "GET":
@@ -72,7 +55,10 @@ def order_list_create(request):
                 "items": items,
             })
 
-        return JsonResponse({"orders": order_list})
+        return JsonResponse({
+            "ok": True,
+            "orders": order_list
+        })
 
 
     # create new order
@@ -82,23 +68,23 @@ def order_list_create(request):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
+            return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
         address_id = data.get("address_id")
         items = data.get("items", [])
 
         # basic validation
         if not address_id:
-            return JsonResponse({"message": "Address is required"}, status=400)
+            return JsonResponse({"ok": False, "message": "Address is required"}, status=400)
 
         if not items:
-            return JsonResponse({"message": "Cart items are required"}, status=400)
+            return JsonResponse({"ok": False, "message": "Cart items are required"}, status=400)
 
         # get user's address
         try:
             address = Address.objects.get(id=address_id, user=user)
         except Address.DoesNotExist:
-            return JsonResponse({"message": "Address not found"}, status=404)
+            return JsonResponse({"ok": False, "message": "Address not found"}, status=404)
 
         subtotal = Decimal("0.00")
         shipping_fee = Decimal("0.00")
@@ -112,16 +98,17 @@ def order_list_create(request):
             quantity = item.get("quantity")
 
             if not product_id or not quantity:
-                return JsonResponse({"message": "Invalid item data"}, status=400)
+                return JsonResponse({"ok": False, "message": "Invalid item data"}, status=400)
 
             try:
                 product = Product.objects.get(id=product_id, is_active=True)
             except Product.DoesNotExist:
-                return JsonResponse({"message": f"Product {product_id} not found"}, status=404)
+                return JsonResponse({"ok": False, "message": f"Product {product_id} not found"}, status=404)
 
             # check stock
             if product.stock < quantity:
                 return JsonResponse({
+                    "ok": False,
                     "message": f"Not enough stock for {product.title}"
                 }, status=400)
 
@@ -208,4 +195,4 @@ def order_list_create(request):
             }
         }, status=201)
 
-    return JsonResponse({"message": "Method not allowed"}, status=405)
+    return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)

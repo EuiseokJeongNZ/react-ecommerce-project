@@ -34,4 +34,7 @@ def product_list(request):
         })
 
     # Return product list as JSON response
-    return JsonResponse({"products": data})
+    return JsonResponse({
+        "ok": True,
+        "products": data
+    })

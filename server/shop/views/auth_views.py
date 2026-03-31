@@ -1,11 +1,13 @@
 # auth_views.py
-
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
+from ..utils.auth import get_current_user
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.conf import settings
+from django.db import IntegrityError
 
 User = get_user_model()
 COOKIE_SECURE = not settings.DEBUG
@@ -16,30 +18,30 @@ COOKIE_SAMESITE = "None" if not settings.DEBUG else "Lax"
 def login(request):
     # allow only POST
     if request.method != "POST":
-        return JsonResponse({"message": "POST only"}, status=405)
+        return JsonResponse({"ok": False, "message": "POST only"}, status=405)
 
     # parse JSON body safely
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({"message": "Invalid JSON"}, status=400)
+        return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
     # get email and password
     email = data.get("email")
     password = data.get("password")
 
     if not email or not password:
-        return JsonResponse({"message": "email or password required"}, status=400)
+        return JsonResponse({"ok": False, "message": "email or password required"}, status=400)
 
     # find user
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
-        return JsonResponse({"message": "Invalid credentials"}, status=401)
+        return JsonResponse({"ok": False, "message": "Invalid credentials"}, status=401)
 
     # check password
     if not user.check_password(password):
-        return JsonResponse({"message": "Invalid credentials"}, status=401)
+        return JsonResponse({"ok": False, "message": "Invalid credentials"}, status=401)
 
     # create tokens
     refresh = RefreshToken.for_user(user)
@@ -73,32 +75,16 @@ def login(request):
 
 
 def me(request):
-    # allow only GET
     if request.method != "GET":
-        return JsonResponse({"message": "GET only"}, status=405)
+        return JsonResponse({"ok": False, "message": "GET only"}, status=405)
 
-    # get access token from cookie
-    access_token = request.COOKIES.get("access")
+    user = get_current_user(request)
 
-    if not access_token:
-        return JsonResponse({"message": "Not logged in"}, status=401)
+    if not user:
+        return JsonResponse({"ok": False, "message": "Not logged in"}, status=401)
 
-    try:
-        # decode token
-        token = AccessToken(access_token)
-        user_id = token["user_id"]
-
-        # get user from DB
-        user = User.objects.get(id=user_id)
-
-    except User.DoesNotExist:
-        return JsonResponse({"message": "User not found"}, status=401)
-
-    except Exception:
-        return JsonResponse({"message": "Invalid or expired token"}, status=401)
-
-    # return current user info
     return JsonResponse({
+        "ok": True,
         "email": user.email,
         "name": user.name,
         "role": user.role,
@@ -107,10 +93,9 @@ def me(request):
 
 @csrf_exempt
 def logout(request):
-    print("logout view called")
     # allow only POST
     if request.method != "POST":
-        return JsonResponse({"message": "POST only"}, status=405)
+        return JsonResponse({"ok": False, "message": "POST only"}, status=405)
 
     response = JsonResponse({"ok": True})
 
@@ -129,18 +114,19 @@ def logout(request):
 
     return response
 
+
 @csrf_exempt
 def refresh(request):
     # allow only POST requests
     if request.method != "POST":
-        return JsonResponse({"message": "POST only"}, status=405)
+        return JsonResponse({"ok": False, "message": "POST only"}, status=405)
 
     # get refresh token from browser cookies
     refresh_token = request.COOKIES.get("refresh")
 
     # if no refresh token exists, user is not authenticated
     if not refresh_token:
-        return JsonResponse({"message": "No refresh token"}, status=401)
+        return JsonResponse({"ok": False, "message": "No refresh token"}, status=401)
 
     try:
         # validate the refresh token
@@ -156,12 +142,10 @@ def refresh(request):
         new_access_token = str(token.access_token)
 
     except User.DoesNotExist:
-        # user id in token does not exist anymore
-        return JsonResponse({"message": "User not found"}, status=401)
+        return JsonResponse({"ok": False, "message": "User not found"}, status=401)
 
-    except Exception:
-        # refresh token is invalid or expired
-        return JsonResponse({"message": "Invalid or expired refresh token"}, status=401)
+    except TokenError:
+        return JsonResponse({"ok": False, "message": "Invalid or expired refresh token"}, status=401)
 
     # create response object
     response = JsonResponse({"ok": True})
@@ -180,16 +164,17 @@ def refresh(request):
     # return response to client
     return response
 
+
 @csrf_exempt
 def signup(request):
     if request.method != "POST":
-        return JsonResponse({"message":"POST only"}, status=405)
+        return JsonResponse({"ok": False, "message": "POST only"}, status=405)
     
     # parse JSON body safely
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({"message":"Invalid JSON"}, status=400)
+        return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
     
     # get signup datas from request body
     username = data.get("username")
@@ -200,32 +185,30 @@ def signup(request):
 
     # validate requires fields
     if not username or not email or not password or not conf_password or not phone:
-        return JsonResponse({"message":"All fields are required"}, status = 400)
+        return JsonResponse({"ok": False, "message": "All fields are required"}, status=400)
     
     # password do not match
     if password != conf_password:
-        return JsonResponse({"message":"Passwords do not match"}, status=400)
+        return JsonResponse({"ok": False, "message": "Passwords do not match"}, status=400)
     
     # avoid duplicated emails
     if User.objects.filter(email=email).exists():
-        return JsonResponse({"message":"Email already exists"}, status=400)
+        return JsonResponse({"ok": False, "message": "Email already exists"}, status=400)
     
     # create a new user
     try:
-        user = User.objects.create(
+        user = User(
             name=username,
             email=email,
             phone=phone,
         )
         user.set_password(password)
         user.save()
-    except:
-        return JsonResponse({"message":"Signup failed"}, status=500)
+    except IntegrityError:
+        return JsonResponse({"ok": False, "message": "Signup failed"}, status=500)
     
     # return sucess response
     return JsonResponse({
-        "ok":True,
-        "message":"Signup sucessful"
+        "ok": True,
+        "message": "Signup sucessful"
     }, status=201)
-
-

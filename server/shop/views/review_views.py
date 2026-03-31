@@ -2,31 +2,29 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-
+from ..utils.auth import get_current_user
 from ..models.review import Review
 from ..models.product import Product
 from ..models.order import OrderItem
-from .profile_views import get_current_user
 
 
 @csrf_exempt
 def create_review(request, product_id):
-    print("calling create_review again again")
     # get logged-in user
     user = get_current_user(request)
 
     if not user:
-        return JsonResponse({"message": "Unauthorized"}, status=401)
+        return JsonResponse({"ok": False, "message": "Unauthorized"}, status=401)
 
     # only POST allowed
     if request.method != "POST":
-        return JsonResponse({"message": "Method not allowed"}, status=405)
+        return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)
 
     # parse request body
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({"message": "Invalid JSON"}, status=400)
+        return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
     # get input values
     rating = data.get("rating")
@@ -34,31 +32,31 @@ def create_review(request, product_id):
 
     # check required fields
     if rating is None:
-        return JsonResponse({"message": "Rating is required"}, status=400)
+        return JsonResponse({"ok": False, "message": "Rating is required"}, status=400)
 
     if not content:
-        return JsonResponse({"message": "Content is required"}, status=400)
+        return JsonResponse({"ok": False, "message": "Content is required"}, status=400)
 
     # convert rating
     try:
         rating = int(rating)
     except (ValueError, TypeError):
-        return JsonResponse({"message": "Rating must be a number"}, status=400)
+        return JsonResponse({"ok": False, "message": "Rating must be a number"}, status=400)
 
     # check rating range
     if rating < 1 or rating > 5:
-        return JsonResponse({"message": "Rating must be between 1 and 5"}, status=400)
+        return JsonResponse({"ok": False, "message": "Rating must be between 1 and 5"}, status=400)
 
     # check product exists
     try:
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
-        return JsonResponse({"message": "Product not found"}, status=404)
+        return JsonResponse({"ok": False, "message": "Product not found"}, status=404)
 
     # check duplicate review
     already_reviewed = Review.objects.filter(user=user, product=product).exists()
     if already_reviewed:
-        return JsonResponse({"message": "You already reviewed this product"}, status=400)
+        return JsonResponse({"ok": False, "message": "You already reviewed this product"}, status=400)
 
     # check purchase history
     purchased = OrderItem.objects.filter(
@@ -68,7 +66,7 @@ def create_review(request, product_id):
     ).exists()
 
     if not purchased:
-        return JsonResponse({"message": "You can only review purchased products"}, status=403)
+        return JsonResponse({"ok": False, "message": "You can only review purchased products"}, status=403)
 
     # create review
     with transaction.atomic():
@@ -98,13 +96,13 @@ def create_review(request, product_id):
 def get_reviews(request, product_id):
     # only GET allowed
     if request.method != "GET":
-        return JsonResponse({"message": "Method not allowed"}, status=405)
+        return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)
 
     # check product exists
     try:
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
-        return JsonResponse({"message": "Product not found"}, status=404)
+        return JsonResponse({"ok": False, "message": "Product not found"}, status=404)
 
     # get review list
     reviews = Review.objects.filter(product=product).select_related("user").order_by("-created_at")
@@ -135,13 +133,13 @@ def get_reviews(request, product_id):
 def get_my_reviews(request):
     # only GET allowed
     if request.method != "GET":
-        return JsonResponse({"message": "Method not allowed"}, status=405)
+        return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)
 
     # get logged-in user
     user = get_current_user(request)
 
     if not user:
-        return JsonResponse({"message": "Unauthorized"}, status=401)
+        return JsonResponse({"ok": False, "message": "Unauthorized"}, status=401)
 
     # get my reviews
     reviews = (
@@ -177,18 +175,18 @@ def get_my_reviews(request):
 def delete_my_review(request, review_id):
     # only DELETE allowed
     if request.method != "DELETE":
-        return JsonResponse({"message": "Method not allowed"}, status=405)
+        return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)
 
     # get logged-in user
     user = get_current_user(request)
 
     if not user:
-        return JsonResponse({"message": "Unauthorized"}, status=401)
+        return JsonResponse({"ok": False, "message": "Unauthorized"}, status=401)
 
     try:
         review = Review.objects.get(id=review_id, user=user)
     except Review.DoesNotExist:
-        return JsonResponse({"message": "Review not found"}, status=404)
+        return JsonResponse({"ok": False, "message": "Review not found"}, status=404)
 
     review.delete()
 
@@ -201,37 +199,37 @@ def delete_my_review(request, review_id):
 def update_my_review(request, review_id):
     # only PUT allowed
     if request.method != "PUT":
-        return JsonResponse({"message": "Method not allowed"}, status=405)
+        return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)
 
     # get logged-in user
     user = get_current_user(request)
 
     if not user:
-        return JsonResponse({"message": "Unauthorized"}, status=401)
+        return JsonResponse({"ok": False, "message": "Unauthorized"}, status=401)
 
     try:
         review = Review.objects.get(id=review_id, user=user)
     except Review.DoesNotExist:
-        return JsonResponse({"message": "Review not found"}, status=404)
+        return JsonResponse({"ok": False, "message": "Review not found"}, status=404)
 
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({"message": "Invalid JSON"}, status=400)
+        return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
     rating = data.get("rating")
     content = data.get("content", "").strip()
 
-    if not rating or not content:
-        return JsonResponse({"message": "Rating and content are required"}, status=400)
+    if rating is None or not content:
+        return JsonResponse({"ok": False, "message": "Rating and content are required"}, status=400)
 
     try:
         rating = int(rating)
     except ValueError:
-        return JsonResponse({"message": "Rating must be a number"}, status=400)
+        return JsonResponse({"ok": False, "message": "Rating must be a number"}, status=400)
 
     if rating < 1 or rating > 5:
-        return JsonResponse({"message": "Rating must be between 1 and 5"}, status=400)
+        return JsonResponse({"ok": False, "message": "Rating must be between 1 and 5"}, status=400)
 
     review.rating = rating
     review.content = content
