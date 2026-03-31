@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from ..utils.auth import get_current_user
+from ..utils.validators import clean_text
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.conf import settings

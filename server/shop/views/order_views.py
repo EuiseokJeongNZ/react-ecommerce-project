@@ -11,6 +11,23 @@ from ..models.product import Product
 from ..models.order import Order, OrderItem
 import json
 
+def parse_positive_int(value):
+    if isinstance(value, bool):
+        return None
+
+    if isinstance(value, float):
+        return None
+
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return None
+
+    if value < 1:
+        return None
+
+    return value
+
 @csrf_exempt
 def order_list_create(request):
 
@@ -70,15 +87,15 @@ def order_list_create(request):
         except json.JSONDecodeError:
             return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
-        address_id = data.get("address_id")
-        items = data.get("items", [])
+        address_id = parse_positive_int(data.get("address_id"))
+        items = data.get("items")
 
         # basic validation
-        if not address_id:
-            return JsonResponse({"ok": False, "message": "Address is required"}, status=400)
+        if address_id is None:
+            return JsonResponse({"ok": False, "message": "Invalid address_id"}, status=400)
 
-        if not items:
-            return JsonResponse({"ok": False, "message": "Cart items are required"}, status=400)
+        if not isinstance(items, list) or not items:
+            return JsonResponse({"ok": False, "message": "Cart items must be a non-empty list"}, status=400)
 
         # get user's address
         try:
@@ -91,14 +108,29 @@ def order_list_create(request):
         discount = Decimal("0.00")
 
         order_items_data = []
+        seen_product_ids = set()
 
         # validate products and calculate subtotal
         for item in items:
-            product_id = item.get("product_id")
-            quantity = item.get("quantity")
+            if not isinstance(item, dict):
+                return JsonResponse({"ok": False, "message": "Each cart item must be an object"}, status=400)
 
-            if not product_id or not quantity:
-                return JsonResponse({"ok": False, "message": "Invalid item data"}, status=400)
+            product_id = parse_positive_int(item.get("product_id"))
+            quantity = parse_positive_int(item.get("quantity"))
+
+            if product_id is None:
+                return JsonResponse({"ok": False, "message": "Invalid product_id"}, status=400)
+
+            if quantity is None:
+                return JsonResponse({"ok": False, "message": "Quantity must be a positive integer"}, status=400)
+            
+            if product_id in seen_product_ids:
+                return JsonResponse({
+                    "ok": False,
+                    "message": "Duplicate product in cart items"
+                }, status=400)
+
+            seen_product_ids.add(product_id)
 
             try:
                 product = Product.objects.get(id=product_id, is_active=True)
