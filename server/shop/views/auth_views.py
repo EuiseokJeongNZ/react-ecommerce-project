@@ -28,8 +28,8 @@ def login(request):
         return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
     # get email and password
-    email = data.get("email")
-    password = data.get("password")
+    email = clean_text(data.get("email"))
+    password = clean_text(data.get("password"))
 
     if not email or not password:
         return JsonResponse({"ok": False, "message": "email or password required"}, status=400)
