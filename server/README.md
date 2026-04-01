@@ -2,11 +2,11 @@
 
 [![Django](https://img.shields.io/badge/Django-4.2-green?logo=django)](https://www.djangoproject.com/)
 [![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-black?logo=githubactions)](https://github.com/features/actions)
-[![Render](https://img.shields.io/badge/Deployment-Render-46E3B7?logo=render)](https://render.com/)
+[![Render](https://img.shields.io/badge/Backend-CD_Render-46E3B7?logo=render)](https://render.com/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-blue?logo=docker)](https://www.docker.com/)
 
 > ⚙️ Backend API for the PurePro eCommerce project built with **Django**.  
-> Handles authentication, products, addresses, orders, profile, and reviews, with **GitHub Actions CI** and **Docker-based deployment on Render**.
+> Handles authentication, products, addresses, orders, profile, and reviews, with **GitHub Actions-based CI** and **continuous deployment to Render**.
 
 ---
 
@@ -22,8 +22,9 @@ It supports:
 - order processing
 - review management
 - JWT-based cookie authentication
-- GitHub Actions CI for backend validation
-- Docker-based backend deployment on Render
+- Docker-based backend containerization
+- GitHub Actions CI
+- Render-based backend CD
 
 ---
 
@@ -36,10 +37,10 @@ It supports:
 - 📦 Order creation and order history
 - ⭐ Review create / update / delete
 - ✅ Purchase-based review permission logic
-- 🐳 Dockerfile-based containerized deployment
+- 🐳 Dockerfile-based deployment
 - ☁️ Production-ready media storage structure
-- ⚙️ GitHub Actions CI validation
-- 🚀 Render deployment for production backend hosting
+- ⚙️ GitHub Actions CI workflow
+- 🚀 Continuous deployment with Render
 
 ---
 
@@ -53,11 +54,9 @@ It supports:
 - **Whitenoise**
 - **django-storages**
 - **boto3**
-
-### DevOps / Deployment
-- **GitHub Actions** (CI)
-- **Docker** (containerized backend deployment)
-- **Render** (production backend hosting)
+- **Docker**
+- **GitHub Actions**
+- **Render**
 
 ---
 
@@ -223,6 +222,24 @@ AWS_S3_REGION_NAME=your-region
 
 ---
 
+## 🐳 Docker
+
+This backend includes a Dockerfile for container-based deployment.
+
+### Build image
+
+```bash
+docker build -t purepro-backend .
+```
+
+### Run container
+
+```bash
+docker run -p 8000:8000 purepro-backend
+```
+
+---
+
 ## 🧪 CI Workflow
 
 This backend is connected to GitHub Actions for continuous integration.
@@ -233,24 +250,24 @@ This backend is connected to GitHub Actions for continuous integration.
 - Django system check
 - test command execution
 
-### CI flow
-1. Code is pushed to GitHub
-2. GitHub Actions runs backend validation steps
-3. Changes are merged only after required checks pass
+### CI summary
+- **CI**: GitHub Actions
+- validates backend build and Django project health before merge or deployment
 
 ---
 
-## 🚢 Deployment
+## 🚢 CD / Deployment
 
-This backend is deployed as a containerized Django service.
+This backend uses continuous deployment to Render.
 
-### Production Hosting
-- **Render** for backend hosting
-- **Dockerfile-based deployment** for consistent build and runtime setup
+### Backend CD
+- **Render** for Django backend hosting
+- deployed using a **Dockerfile-based containerized setup**
+- production frontend connects to the deployed backend API
 
 ### Deployment Summary
 - **CI**: GitHub Actions
-- **Deployment**: Render
+- **CD**: Render
 - **Containerization**: Docker
 
 ---
