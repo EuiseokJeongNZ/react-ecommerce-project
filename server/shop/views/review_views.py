@@ -6,6 +6,7 @@ from ..utils.auth import get_current_user
 from ..models.review import Review
 from ..models.product import Product
 from ..models.order import OrderItem
+from ..utils.validators import clean_text, parse_rating
 
 
 @csrf_exempt
@@ -27,25 +28,25 @@ def create_review(request, product_id):
         return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
     # get input values
-    rating = data.get("rating")
-    content = data.get("content", "").strip()
+    rating = parse_rating(data.get("rating"))
+    content = clean_text(data.get("content"))
 
     # check required fields
     if rating is None:
-        return JsonResponse({"ok": False, "message": "Rating is required"}, status=400)
+        return JsonResponse({"ok": False, "message": "Rating must be an integer between 1 and 5"}, status=400)
 
     if not content:
         return JsonResponse({"ok": False, "message": "Content is required"}, status=400)
 
-    # convert rating
-    try:
-        rating = int(rating)
-    except (ValueError, TypeError):
-        return JsonResponse({"ok": False, "message": "Rating must be a number"}, status=400)
+    # # convert rating
+    # try:
+    #     rating = int(rating)
+    # except (ValueError, TypeError):
+    #     return JsonResponse({"ok": False, "message": "Rating must be a number"}, status=400)
 
-    # check rating range
-    if rating < 1 or rating > 5:
-        return JsonResponse({"ok": False, "message": "Rating must be between 1 and 5"}, status=400)
+    # # check rating range
+    # if rating < 1 or rating > 5:
+    #     return JsonResponse({"ok": False, "message": "Rating must be between 1 and 5"}, status=400)
 
     # check product exists
     try:
@@ -217,19 +218,22 @@ def update_my_review(request, review_id):
     except json.JSONDecodeError:
         return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
-    rating = data.get("rating")
-    content = data.get("content", "").strip()
+    rating = parse_rating(data.get("rating"))
+    content = clean_text(data.get("content"))
 
-    if rating is None or not content:
-        return JsonResponse({"ok": False, "message": "Rating and content are required"}, status=400)
+    if rating is None:
+        return JsonResponse({"ok": False, "message": "Rating must be an integer between 1 and 5"}, status=400)
 
-    try:
-        rating = int(rating)
-    except ValueError:
-        return JsonResponse({"ok": False, "message": "Rating must be a number"}, status=400)
+    if not content:
+        return JsonResponse({"ok": False, "message": "Content is required"}, status=400)
 
-    if rating < 1 or rating > 5:
-        return JsonResponse({"ok": False, "message": "Rating must be between 1 and 5"}, status=400)
+    # try:
+    #     rating = int(rating)
+    # except ValueError:
+    #     return JsonResponse({"ok": False, "message": "Rating must be a number"}, status=400)
+
+    # if rating < 1 or rating > 5:
+    #     return JsonResponse({"ok": False, "message": "Rating must be between 1 and 5"}, status=400)
 
     review.rating = rating
     review.content = content

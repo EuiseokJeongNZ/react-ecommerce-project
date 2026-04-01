@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from ..models.address import Address
 from ..utils.auth import get_current_user
 from django.views.decorators.csrf import csrf_exempt
+from ..utils.validators import clean_text, parse_bool
 import json
 
 # api for getting address list or creating address
@@ -45,12 +46,16 @@ def address_list(request):
             return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
         # get data from request
-        recipient = data.get("recipient")
-        phone = data.get("phone")
-        zip_code = data.get("zip")
-        addr1 = data.get("addr1")
-        addr2 = data.get("addr2", "")
-        is_default = data.get("is_default", False)
+        recipient = clean_text(data.get("recipient"))
+        phone = clean_text(data.get("phone"))
+        zip_code = clean_text(data.get("zip"))
+        addr1 = clean_text(data.get("addr1"))
+        addr2 = clean_text(data.get("addr2", "")) or ""
+        is_default = parse_bool(data.get("is_default"), default=False)
+
+        # check is_default is boolean type
+        if is_default is None:
+            return JsonResponse({"ok": False, "message": "is_default must be true or false"}, status=400)
 
         # check required fields
         if not recipient or not phone or not zip_code or not addr1:
@@ -112,12 +117,16 @@ def address_detail(request, address_id):
         except json.JSONDecodeError:
             return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
-        recipient = data.get("recipient")
-        phone = data.get("phone")
-        zip_code = data.get("zip")
-        addr1 = data.get("addr1")
-        addr2 = data.get("addr2", "")
-        is_default = data.get("is_default", False)
+        recipient = clean_text(data.get("recipient"))
+        phone = clean_text(data.get("phone"))
+        zip_code = clean_text(data.get("zip"))
+        addr1 = clean_text(data.get("addr1"))
+        addr2 = clean_text(data.get("addr2", "")) or ""
+        is_default = parse_bool(data.get("is_default"), default=False)
+
+        # check is_default is boolean type
+        if is_default is None:
+            return JsonResponse({"ok": False, "message": "is_default must be true or false"}, status=400)
 
         if not recipient or not phone or not zip_code or not addr1:
             return JsonResponse({"ok": False, "message": "Required fields are missing"}, status=400)

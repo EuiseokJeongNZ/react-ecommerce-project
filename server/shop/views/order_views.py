@@ -4,12 +4,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from decimal import Decimal
-from datetime import datetime
 from ..utils.auth import get_current_user
 from ..models.address import Address
 from ..models.product import Product
 from ..models.order import Order, OrderItem
 import json
+import uuid
+
 
 def parse_positive_int(value):
     if isinstance(value, bool):
@@ -28,9 +29,9 @@ def parse_positive_int(value):
 
     return value
 
+
 @csrf_exempt
 def order_list_create(request):
-
     # identify current user
     user = get_current_user(request)
 
@@ -77,10 +78,8 @@ def order_list_create(request):
             "orders": order_list
         })
 
-
     # create new order
     if request.method == "POST":
-
         # parse request body
         try:
             data = json.loads(request.body)
@@ -95,7 +94,10 @@ def order_list_create(request):
             return JsonResponse({"ok": False, "message": "Invalid address_id"}, status=400)
 
         if not isinstance(items, list) or not items:
-            return JsonResponse({"ok": False, "message": "Cart items must be a non-empty list"}, status=400)
+            return JsonResponse(
+                {"ok": False, "message": "Cart items must be a non-empty list"},
+                status=400
+            )
 
         # get user's address
         try:
@@ -103,84 +105,92 @@ def order_list_create(request):
         except Address.DoesNotExist:
             return JsonResponse({"ok": False, "message": "Address not found"}, status=404)
 
-        subtotal = Decimal("0.00")
-        shipping_fee = Decimal("0.00")
-        discount = Decimal("0.00")
-
-        order_items_data = []
-        seen_product_ids = set()
-
-        # validate products and calculate subtotal
-        for item in items:
-            if not isinstance(item, dict):
-                return JsonResponse({"ok": False, "message": "Each cart item must be an object"}, status=400)
-
-            product_id = parse_positive_int(item.get("product_id"))
-            quantity = parse_positive_int(item.get("quantity"))
-
-            if product_id is None:
-                return JsonResponse({"ok": False, "message": "Invalid product_id"}, status=400)
-
-            if quantity is None:
-                return JsonResponse({"ok": False, "message": "Quantity must be a positive integer"}, status=400)
-            
-            if product_id in seen_product_ids:
-                return JsonResponse({
-                    "ok": False,
-                    "message": "Duplicate product in cart items"
-                }, status=400)
-
-            seen_product_ids.add(product_id)
-
-            try:
-                product = Product.objects.get(id=product_id, is_active=True)
-            except Product.DoesNotExist:
-                return JsonResponse({"ok": False, "message": f"Product {product_id} not found"}, status=404)
-
-            # check stock
-            if product.stock < quantity:
-                return JsonResponse({
-                    "ok": False,
-                    "message": f"Not enough stock for {product.title}"
-                }, status=400)
-
-            unit_price = product.final_price
-            line_total = unit_price * quantity
-            subtotal += line_total
-
-            # save snapshot data for order item
-            order_items_data.append({
-                "product": product,
-                "title_snapshot": product.title,
-                "unit_price_snapshot": unit_price,
-                "image_url_snapshot": "",
-                "quantity": quantity,
-                "line_total": line_total,
-            })
-
-        if subtotal >= Decimal("50.00"):
-            shipping_fee = Decimal("0.00")
-        else:
-            shipping_fee = Decimal("7.00")
-
-        # calculate order total
-        total = subtotal + shipping_fee - discount
-
-        # generate order number
-        now = datetime.now().strftime("%Y%m%d%H%M%S")
-        order_number = f"PP-{now}-{user.id}"
-
-        # snapshot shipping info
-        shipping_snapshot = {
-            "recipient": address.recipient,
-            "phone": address.phone,
-            "zip": address.zip,
-            "addr1": address.addr1,
-            "addr2": address.addr2,
-        }
-
         # run order creation in single transaction
         with transaction.atomic():
+            subtotal = Decimal("0.00")
+            shipping_fee = Decimal("0.00")
+            discount = Decimal("0.00")
+
+            order_items_data = []
+            seen_product_ids = set()
+
+            # validate products and calculate subtotal
+            for item in items:
+                if not isinstance(item, dict):
+                    return JsonResponse(
+                        {"ok": False, "message": "Each cart item must be an object"},
+                        status=400
+                    )
+
+                product_id = parse_positive_int(item.get("product_id"))
+                quantity = parse_positive_int(item.get("quantity"))
+
+                if product_id is None:
+                    return JsonResponse({"ok": False, "message": "Invalid product_id"}, status=400)
+
+                if quantity is None:
+                    return JsonResponse(
+                        {"ok": False, "message": "Quantity must be a positive integer"},
+                        status=400
+                    )
+
+                if product_id in seen_product_ids:
+                    return JsonResponse(
+                        {"ok": False, "message": "Duplicate product in cart items"},
+                        status=400
+                    )
+
+                seen_product_ids.add(product_id)
+
+                try:
+                    product = Product.objects.select_for_update().get(
+                        id=product_id,
+                        is_active=True
+                    )
+                except Product.DoesNotExist:
+                    return JsonResponse(
+                        {"ok": False, "message": f"Product {product_id} not found"},
+                        status=404
+                    )
+
+                if product.stock < quantity:
+                    return JsonResponse({
+                        "ok": False,
+                        "message": f"Not enough stock for {product.title}"
+                    }, status=400)
+
+                unit_price = product.final_price
+                line_total = unit_price * quantity
+                subtotal += line_total
+
+                first_image = product.images.order_by("id").first()
+                image_url_snapshot = first_image.image.url if first_image and first_image.image else ""
+
+                order_items_data.append({
+                    "product": product,
+                    "title_snapshot": product.title,
+                    "unit_price_snapshot": unit_price,
+                    "image_url_snapshot": image_url_snapshot,
+                    "quantity": quantity,
+                    "line_total": line_total,
+                })
+
+            if subtotal >= Decimal("50.00"):
+                shipping_fee = Decimal("0.00")
+            else:
+                shipping_fee = Decimal("7.00")
+
+            total = subtotal + shipping_fee - discount
+
+            order_number = f"PP-{uuid.uuid4().hex[:12].upper()}"
+
+            shipping_snapshot = {
+                "recipient": address.recipient,
+                "phone": address.phone,
+                "zip": address.zip,
+                "addr1": address.addr1,
+                "addr2": address.addr2,
+            }
 
             order = Order.objects.create(
                 user=user,
@@ -193,9 +203,7 @@ def order_list_create(request):
                 shipping_snapshot=shipping_snapshot,
             )
 
-            # create order items and update stock
             for item_data in order_items_data:
-
                 OrderItem.objects.create(
                     order=order,
                     product=item_data["product"],

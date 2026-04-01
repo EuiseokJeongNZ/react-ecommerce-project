@@ -1,6 +1,8 @@
+# porfile_views.py
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from ..utils.auth import get_current_user
+from ..utils.validators import clean_text
 import json
 
 @csrf_exempt
@@ -33,11 +35,14 @@ def profile(request):
         except json.JSONDecodeError:
             return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
-        name = data.get("name")
-        phone = data.get("phone")
+        name = clean_text(data.get("name"))
+        phone = clean_text(data.get("phone"))
 
         if not name:
             return JsonResponse({"ok": False, "message": "Name is required"}, status=400)
+        
+        if not phone:
+            return JsonResponse({"ok": False, "message": "Phone is required"}, status=400)
 
         user.name = name
         user.phone = phone

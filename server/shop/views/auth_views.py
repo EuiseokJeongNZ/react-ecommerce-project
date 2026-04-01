@@ -162,7 +162,6 @@ def refresh(request):
         max_age=300,
     )
 
-    # return response to client
     return response
 
 
@@ -170,32 +169,32 @@ def refresh(request):
 def signup(request):
     if request.method != "POST":
         return JsonResponse({"ok": False, "message": "POST only"}, status=405)
-    
+
     # parse JSON body safely
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
-    
-    # get signup datas from request body
-    username = data.get("username")
-    email = data.get("email")
-    password = data.get("password")
-    conf_password = data.get("conf_password")
-    phone = data.get("phone")
 
-    # validate requires fields
+    # get signup data from request body
+    username = clean_text(data.get("username"))
+    email = clean_text(data.get("email"))
+    password = clean_text(data.get("password"))
+    conf_password = clean_text(data.get("conf_password"))
+    phone = clean_text(data.get("phone"))
+
+    # validate required fields
     if not username or not email or not password or not conf_password or not phone:
         return JsonResponse({"ok": False, "message": "All fields are required"}, status=400)
-    
-    # password do not match
+
+    # password does not match
     if password != conf_password:
         return JsonResponse({"ok": False, "message": "Passwords do not match"}, status=400)
-    
+
     # avoid duplicated emails
     if User.objects.filter(email=email).exists():
         return JsonResponse({"ok": False, "message": "Email already exists"}, status=400)
-    
+
     # create a new user
     try:
         user = User(
@@ -207,9 +206,9 @@ def signup(request):
         user.save()
     except IntegrityError:
         return JsonResponse({"ok": False, "message": "Signup failed"}, status=500)
-    
-    # return sucess response
+
+    # return success response
     return JsonResponse({
         "ok": True,
-        "message": "Signup sucessful"
+        "message": "Signup successful"
     }, status=201)
