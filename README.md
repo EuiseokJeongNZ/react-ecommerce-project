@@ -3,10 +3,12 @@
 [![React](https://img.shields.io/badge/React-18.2-blue?logo=react)](https://react.dev/)
 [![Django](https://img.shields.io/badge/Django-4.2-green?logo=django)](https://www.djangoproject.com/)
 [![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-black?logo=githubactions)](https://github.com/features/actions)
+[![Vercel](https://img.shields.io/badge/Frontend-CD_Vercel-black?logo=vercel)](https://vercel.com/)
+[![Render](https://img.shields.io/badge/Backend-CD_Render-46E3B7?logo=render)](https://render.com/)
 [![Docker](https://img.shields.io/badge/Backend-Docker-blue?logo=docker)](https://www.docker.com/)
 
 > 🛒 Full stack protein store eCommerce web application built with **React** and **Django**.  
-> Includes authentication, product browsing, cart, address management, orders, reviews, CI workflow, and Dockerfile-based backend deployment.
+> Includes authentication, product browsing, cart, address management, orders, reviews, **GitHub Actions-based CI**, and **continuous deployment with Vercel (frontend) and Render (backend)**.
 
 ---
 
@@ -20,8 +22,9 @@ The project is built with:
 - **Backend**: Django API server organised by domain modules
 - **Authentication**: JWT with HttpOnly access/refresh cookies
 - **Database**: SQLite for local development, PostgreSQL-ready for production
-- **Deployment**: Vercel for frontend, Dockerfile-based backend deployment
 - **CI**: GitHub Actions for frontend build and backend validation
+- **CD**: Vercel for frontend deployment and Render for backend deployment
+- **Containerization**: Dockerfile-based backend deployment on Render
 
 ---
 
@@ -39,6 +42,7 @@ The project is built with:
 - 🔄 Access token refresh with Axios interceptor
 - 🐳 Dockerfile-based backend containerization
 - ⚙️ GitHub Actions CI workflow
+- 🚀 Continuous deployment with Vercel (frontend) and Render (backend)
 
 ---
 
@@ -62,10 +66,10 @@ The project is built with:
 - **django-storages / boto3**
 
 ### DevOps / Deployment
-- **GitHub Actions**
-- **Docker**
-- **Vercel**
-- **Render-ready deployment structure**
+- **GitHub Actions** (CI)
+- **Docker** (backend containerization)
+- **Vercel** (frontend CD)
+- **Render** (backend CD)
 
 ---
 
@@ -74,34 +78,34 @@ The project is built with:
 ```mermaid
 flowchart LR
     DEV[Developer] -->|Code / Commit / Push| GH[GitHub Repository]
-    GH -->|Pull Request / Push Trigger| CI[GitHub Actions CI<br/>Frontend Build · Backend Check]
-    CI -->|Checks Passed| MAIN[Protected main Branch]
 
-    MAIN -->|Auto Deploy| VERCEL[Vercel<br/>Frontend Hosting]
-    MAIN -->|Auto Deploy| RENDER[Render<br/>Backend Hosting]
+    GH -->|Trigger on Push / PR| CI[GitHub Actions CI<br/>Frontend Build · Backend Validation]
+    CI -->|Checks Passed| MAIN[Main Branch]
+
+    MAIN -->|Frontend CD| VERCEL[Vercel<br/>React Frontend Hosting]
+    MAIN -->|Backend CD| RENDER[Render<br/>Django Backend Hosting]
 
     GH -.contains.-> DOCKER[Dockerfile<br/>Backend Container Definition]
     DOCKER -.used by.-> RENDER
 
-    U[User Browser] -->|Load Web App| VERCEL
-    VERCEL --> FE[React SPA<br/>Runs in Browser]
+    USER[User Browser] -->|Open Web App| VERCEL
+    VERCEL --> FE[React SPA]
 
-    FE --> STATE[Context / Reducer State<br/>Auth · Cart · Filters]
-    FE --> AXIOS[Axios Instance<br/>withCredentials · 401 Refresh Interceptor]
+    FE --> STATE[Context API / Reducer<br/>Auth · Cart · Filters]
+    FE --> AXIOS[Axios Instance<br/>withCredentials · Refresh Interceptor]
 
     AXIOS -->|HTTPS API Requests| RENDER
-    RENDER --> BE[Django API Server<br/>Backend]
+    RENDER --> BE[Django API Server]
 
-    BE --> AUTH[JWT Authentication<br/>HttpOnly access / refresh cookies]
+    BE --> AUTH[JWT Authentication<br/>HttpOnly Access / Refresh Cookies]
     BE --> API[Domain APIs<br/>Auth · Products · Address · Orders · Reviews]
     BE --> ORM[Django ORM]
 
-    ORM --> DB[(SQLite Local Dev<br/>PostgreSQL-ready Production)]
+    ORM --> DB[(SQLite for Local Dev<br/>PostgreSQL-ready for Production)]
     BE --> MEDIA[Media Storage<br/>AWS S3 in Production]
 
-    BE -->|Set access / refresh cookies| U
-    U -->|Auto-send cookies| AXIOS
-    AXIOS -->|POST /api/auth/refresh/| RENDER
+    BE -->|Set Cookies| USER
+    USER -->|Auto-send Cookies| AXIOS
 ```
 
 ---
@@ -121,6 +125,7 @@ react-ecommerce-project/
 │   │   ├── pages/
 │   │   └── routes/
 │   ├── package.json
+│   ├── vercel.json
 │   └── README.md
 │
 ├── server/                  # Django backend
@@ -217,7 +222,7 @@ AWS_S3_REGION_NAME=your-region
 
 ## 🧪 CI Workflow
 
-This project includes a GitHub Actions workflow for continuous integration.
+This project uses GitHub Actions for continuous integration.
 
 ### Current checks
 - Frontend build
@@ -226,18 +231,25 @@ This project includes a GitHub Actions workflow for continuous integration.
 ### CI flow
 1. Code is pushed to GitHub
 2. GitHub Actions runs frontend and backend checks
-3. Protected `main` branch requires checks before merge
+3. Changes are merged only after required checks pass
 
 ---
 
-## 🚢 Deployment
+## 🚢 CD / Deployment
 
-### Frontend
-- **Vercel**
+This project uses continuous deployment for both frontend and backend.
 
-### Backend
-- **Dockerfile-based deployment**
-- **Render-ready deployment structure**
+### Frontend CD
+- **Vercel** for React frontend hosting
+- Production frontend is deployed from the GitHub repository
+
+### Backend CD
+- **Render** for Django backend hosting
+- Backend is deployed using a **Dockerfile-based containerized setup**
+
+### Deployment Summary
+- **CI**: GitHub Actions
+- **CD**: Vercel (frontend), Render (backend)
 
 ---
 
