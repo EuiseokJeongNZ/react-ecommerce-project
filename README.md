@@ -7,69 +7,124 @@
 [![Render](https://img.shields.io/badge/Backend-CD_Render-46E3B7?logo=render)](https://render.com/)
 [![Docker](https://img.shields.io/badge/Backend-Docker-blue?logo=docker)](https://www.docker.com/)
 
-> 🛒 Full stack protein store eCommerce web application built with **React** and **Django**.  
-> Includes authentication, product browsing, cart, address management, orders, reviews, **GitHub Actions-based CI**, and **continuous deployment with Vercel (frontend) and Render (backend)**.
+> Full-stack e-commerce web application built with React and Django.  
+> Designed to simulate production-style service flows including cookie-based authentication, order snapshot handling, purchase-based reviews, backend validation tests, and deployable frontend/backend architecture.
 
 ---
 
 ## 🚀 Overview
 
-PurePro is a full stack eCommerce project designed to simulate a modern online store experience.
+PurePro is a full-stack eCommerce project built to simulate production-style service behavior rather than a simple shopping mall clone.
 
-The project is built with:
+The project focuses on:
 
-- **Frontend**: React SPA with Context API and Reducer-based state management
-- **Backend**: Django API server organised by domain modules
-- **Authentication**: JWT with HttpOnly access/refresh cookies
-- **Database**: SQLite for local development, PostgreSQL-ready for production
-- **CI**: GitHub Actions for frontend build and backend validation
-- **CD**: Vercel for frontend deployment and Render for backend deployment
-- **Containerization**: Dockerfile-based backend deployment on Render
+- cookie-based JWT authentication with refresh flow
+- order creation with shipping and product snapshot storage
+- purchase-based review policy
+- backend validation of core business rules through automated tests
+- separated frontend/backend deployment with CI/CD
 
 ---
 
 ## ✨ Core Features
 
-- 🔐 User authentication with HttpOnly cookie-based JWT flow
-- 🛍️ Product list and product detail pages
-- 🛒 Cart management
-- 📦 Address management
-- 🧾 Order creation and order history
-- ⭐ Review creation, update, and deletion
-- ✅ Purchase-based review policy
-- 🎯 Product filtering and sorting
-- 🌙 Responsive dark-themed UI
-- 🔄 Access token refresh with Axios interceptor
-- 🐳 Dockerfile-based backend containerization
-- ⚙️ GitHub Actions CI workflow
-- 🚀 Continuous deployment with Vercel (frontend) and Render (backend)
+### Authentication
+- JWT authentication with HttpOnly access/refresh cookies
+- automatic access token refresh with Axios interceptor
+- protected session recovery through backend auth utility
+
+### Product / Cart / Checkout
+- product listing and detail pages
+- cart state management with reducer-based updates
+- checkout flow with saved addresses
+- validation for invalid order requests
+
+### Order Flow
+- address ownership validation before order creation
+- duplicate product validation inside cart items
+- stock validation before order confirmation
+- shipping fee calculation based on subtotal
+- shipping and product snapshot storage at order time
+- user-specific order history retrieval
+
+### Review Flow
+- only purchased users can create reviews
+- one review per user per product
+- users can update or delete only their own reviews
+- product average rating and review count are recalculated automatically
+
+---
+
+## 🧠 Architecture Decisions
+
+### Cookie-based JWT Authentication
+Access and refresh tokens are stored in HttpOnly cookies to simulate a more production-oriented authentication flow and reduce direct token exposure in client-side JavaScript.
+
+### Order Snapshot Design
+Shipping information and product information are stored as snapshot values at the moment of order creation. This keeps historical order data consistent even if product data changes later.
+
+### Purchase-based Review Policy
+Reviews are restricted to users with purchase history for the target product. This makes the review system more reliable and closer to real commerce service behavior.
+
+### Domain-based Backend Structure
+Backend logic is separated by domain modules such as auth, orders, reviews, and products to improve readability and maintainability.
+
+---
+
+## 🧪 Testing
+
+This project includes backend tests for core business logic and validation rules.
+
+### Covered areas
+- auth views
+- order views
+- review views
+- review model
+- validator utils
+- auth utility
+
+### What is tested
+- signup, login, logout, and refresh flow
+- access/refresh cookie handling
+- unauthorized access blocking
+- order validation and stock updates
+- shipping fee calculation
+- purchase-based review creation
+- duplicate review prevention
+- review rating aggregation logic
+- validator boundary cases
+
+### Example command
+```bash
+python manage.py test
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React**
-- **React Router**
-- **Context API + Reducer**
-- **Axios**
-- **SASS**
-- **Swiper**
+- React
+- React Router
+- Context API + Reducer
+- Axios
+- SASS
+- Swiper
 
 ### Backend
-- **Django**
-- **Django ORM**
-- **Django REST Framework**
-- **Simple JWT**
-- **Gunicorn**
-- **Whitenoise**
-- **django-storages / boto3**
+- Django
+- Django ORM
+- Django REST Framework
+- Simple JWT
+- Gunicorn
+- Whitenoise
+- django-storages / boto3
 
 ### DevOps / Deployment
-- **GitHub Actions** (CI)
-- **Docker** (backend containerization)
-- **Vercel** (frontend CD)
-- **Render** (backend CD)
+- GitHub Actions
+- Docker
+- Vercel
+- Render
 
 ---
 
@@ -222,11 +277,12 @@ AWS_S3_REGION_NAME=your-region
 
 ## 🧪 CI Workflow
 
-This project uses GitHub Actions for continuous integration.
+This project uses GitHub Actions to verify key application quality before deployment.
 
 ### Current checks
-- Frontend build
-- Backend validation
+- frontend build
+- backend validation
+- backend automated tests for core service logic
 
 ### CI flow
 1. Code is pushed to GitHub
@@ -240,27 +296,26 @@ This project uses GitHub Actions for continuous integration.
 This project uses continuous deployment for both frontend and backend.
 
 ### Frontend CD
-- **Vercel** for React frontend hosting
-- Production frontend is deployed from the GitHub repository
+- Vercel for React frontend hosting
+- production frontend is deployed from the GitHub repository
 
 ### Backend CD
-- **Render** for Django backend hosting
-- Backend is deployed using a **Dockerfile-based containerized setup**
+- Render for Django backend hosting
+- backend is deployed using a Dockerfile-based containerized setup
 
 ### Deployment Summary
-- **CI**: GitHub Actions
-- **CD**: Vercel (frontend), Render (backend)
+- CI: GitHub Actions
+- CD: Vercel (frontend), Render (backend)
 
 ---
 
 ## 📌 Roadmap
 
-- Improve frontend lint compliance without CI workaround
-- Add test coverage for core backend flows
+- Standardize backend error response format
+- Add admin dashboard for order / stock / review management
 - Add backend-side filtering, sorting, and pagination
-- Improve admin management features
-- Refine cart persistence
-- Enhance deployment automation
+- Improve logging and monitoring
+- Add API documentation
 
 ---
 
