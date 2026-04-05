@@ -15,3 +15,20 @@ COPY . .
 EXPOSE 8000
 
 CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
+
+# After fix an error of aws ec2 verification
+# FROM python:3.12-slim
+
+# ENV PYTHONDONTWRITEBYTECODE=1
+# ENV PYTHONUNBUFFERED=1
+
+# WORKDIR /purepro
+
+# COPY requirements.txt /purepro/
+# RUN pip install --no-cache-dir -r requirements.txt
+
+# COPY . /purepro/
+
+# EXPOSE 8000
+
+# CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

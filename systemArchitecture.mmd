@@ -1,30 +1,30 @@
 flowchart LR
     DEV[Developer] -->|Code / Commit / Push| GH[GitHub Repository]
-    GH -->|Pull Request / Push Trigger| CI[GitHub Actions CI<br/>Frontend Build · Backend Check]
-    CI -->|Checks Passed| MAIN[Protected main Branch]
 
-    MAIN -->|Auto Deploy| VERCEL[Vercel<br/>Frontend Hosting]
-    MAIN -->|Auto Deploy| RENDER[Render<br/>Backend Hosting]
+    GH -->|Trigger on Push / PR| CI[GitHub Actions CI<br/>Frontend Build · Backend Validation]
+    CI -->|Checks Passed| MAIN[Main Branch]
+
+    MAIN -->|Frontend CD| VERCEL[Vercel<br/>React Frontend Hosting]
+    MAIN -->|Backend CD| RENDER[Render<br/>Django Backend Hosting]
 
     GH -.contains.-> DOCKER[Dockerfile<br/>Backend Container Definition]
     DOCKER -.used by.-> RENDER
 
-    U[User Browser] -->|Load Web App| VERCEL
-    VERCEL --> FE[React SPA<br/>Runs in Browser]
+    USER[User Browser] -->|Open Web App| VERCEL
+    VERCEL --> FE[React SPA]
 
-    FE --> STATE[Context / Reducer State<br/>Auth · Cart · Filters]
-    FE --> AXIOS[Axios Instance<br/>withCredentials · 401 Refresh Interceptor]
+    FE --> STATE[Context API / Reducer<br/>Auth · Cart · Filters]
+    FE --> AXIOS[Axios Instance<br/>withCredentials · Refresh Interceptor]
 
     AXIOS -->|HTTPS API Requests| RENDER
-    RENDER --> BE[Django API Server<br/>Backend]
+    RENDER --> BE[Django API Server]
 
-    BE --> AUTH[JWT Authentication<br/>HttpOnly access / refresh cookies]
+    BE --> AUTH[JWT Authentication<br/>HttpOnly Access / Refresh Cookies]
     BE --> API[Domain APIs<br/>Auth · Products · Address · Orders · Reviews]
     BE --> ORM[Django ORM]
 
-    ORM --> DB[(SQLite Local Dev<br/>PostgreSQL-ready Production)]
+    ORM --> DB[(SQLite for Local Dev<br/>PostgreSQL-ready for Production)]
     BE --> MEDIA[Media Storage<br/>AWS S3 in Production]
 
-    BE -->|Set access / refresh cookies| U
-    U -->|Auto-send cookies| AXIOS
-    AXIOS -->|POST /api/auth/refresh/| RENDER
+    BE -->|Set Cookies| USER
+    USER -->|Auto-send Cookies| AXIOS

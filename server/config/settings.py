@@ -192,3 +192,17 @@ AWS_QUERYSTRING_AUTH = False
 
 # Prevent overwriting files with the same name
 AWS_S3_FILE_OVERWRITE = False
+
+# after fix an erro of aws ec2 verification
+# # AWS Redis CACHES Setting
+# REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": REDIS_URL,
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }

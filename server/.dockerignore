@@ -7,3 +7,20 @@ db.sqlite3
 venv/
 .git
 .gitignore
+
+# after fix an erro of aws ec2 verification
+# __pycache__
+# *.pyc
+# *.pyo
+# *.pyd
+# .env
+# venv
+# .venv
+# db.sqlite3
+# media
+# staticfiles
+# .git
+# .gitignore
+# Dockerfile
+# README.md
+# node_modules
