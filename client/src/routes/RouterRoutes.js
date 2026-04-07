@@ -12,6 +12,7 @@ import Orders from '../pages/Orders';
 import Checkout from  "../pages/Checkout";
 import MyReviews from '../pages/MyReviews';
 import ReviewPage from '../pages/ReviewPage';
+import ProtectedRoute from './ProtectedRoute';
 
 const RouterRoutes = () => {
 
@@ -24,13 +25,49 @@ const RouterRoutes = () => {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/all-products" element={<AllProducts />} />
                 <Route path="/product-details/:productId" element={<ProductDetails />} />
-                <Route path="/addresses" element={<Addresses />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/product-details/:productId/reviews" element={<ReviewPage />} />
+                {/* <Route path="/addresses" element={<Addresses />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/orders" element={<Orders />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/my-reviews" element={<MyReviews />} />
-                <Route path="/product-details/:productId/reviews" element={<ReviewPage />} />
+                <Route path="/my-reviews" element={<MyReviews />} /> */}
                 <Route path="*" element={<ErrorPage />} />
+
+                <Route
+                path="/addresses"
+                element={
+                    <ProtectedRoute>
+                    <Addresses />
+                    </ProtectedRoute>
+                }
+                />
+
+                <Route
+                path="/profile"
+                element={
+                    <ProtectedRoute>
+                    <Profile />
+                    </ProtectedRoute>
+                }
+                />
+
+                <Route
+                path="/orders"
+                element={
+                    <ProtectedRoute>
+                    <Orders />
+                    </ProtectedRoute>
+                }
+                />
+
+                <Route
+                path="/my-reviews"
+                element={
+                    <ProtectedRoute>
+                    <MyReviews />
+                    </ProtectedRoute>
+                }
+                />
             </Routes>
         </>
     );

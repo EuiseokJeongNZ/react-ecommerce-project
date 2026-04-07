@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import commonContext from '../../contexts/common/commonContext';
 import useForm from '../../hooks/useForm';
 import useOutsideClose from '../../hooks/useOutsideClose';
@@ -13,6 +13,8 @@ const AccountForm = () => {
   const formRef = useRef();
   const [isSignupVisible, setIsSignupVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const navigate = useNavigate();
 
   useOutsideClose(formRef, () => {
     toggleForm(false);
@@ -57,6 +59,10 @@ const AccountForm = () => {
       console.log('logged in user:', me.data);
 
       toggleForm(false);
+      navigate('/');
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } catch (err) {
       console.log(err.response?.data);
       setErrorMessage(err.response?.data?.message || 'Request failed');

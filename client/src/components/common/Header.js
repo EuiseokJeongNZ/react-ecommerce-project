@@ -27,12 +27,13 @@ const Header = () => {
   }, []);
 
   const cartQuantity = cartItems.length;
-
+  
   const handleLogout = async () => {
     try {
       await api.post('/api/auth/logout/');
       setCurrentUser(null);
       console.log('logged out');
+      window.location.href = '/';
     } catch (err) {
       console.log(err.response?.data || err);
     }
