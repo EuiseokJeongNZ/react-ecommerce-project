@@ -85,16 +85,20 @@ const Header = () => {
 
                   <div className="separator"></div>
 
-                  <ul>
-                    {dropdownMenu.map((item) => {
-                      const { id, link, path } = item;
-                      return (
-                        <li key={id}>
-                          <Link to={path}>{link}</Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  {!currentUser ? (
+                    <p className="dropdown_hint">Login to view profile, orders, and saved addresses.</p>
+                  ) : (
+                    <ul>
+                      {dropdownMenu.map((item) => {
+                        const { id, link, path } = item;
+                        return (
+                          <li key={id}>
+                            <Link to={path}>{link}</Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
               </div>
             </nav>
