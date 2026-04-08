@@ -1,18 +1,23 @@
-# auth_views.py
+import json
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.exceptions import TokenError
+from ..utils.auth import (
+    get_current_user,
+    build_auth_response,
+    set_auth_cookies,
+    clear_auth_cookies,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
-from ..utils.auth import get_current_user
+from rest_framework_simplejwt.exceptions import TokenError
 from ..utils.validators import clean_text
 from django.views.decorators.csrf import csrf_exempt
-import json
-from django.conf import settings
 from django.db import IntegrityError
+from django.conf import settings
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
 
 User = get_user_model()
-COOKIE_SECURE = not settings.DEBUG
-COOKIE_SAMESITE = "None" if not settings.DEBUG else "Lax"
 
 
 @csrf_exempt
@@ -44,35 +49,7 @@ def login(request):
     if not user.check_password(password):
         return JsonResponse({"ok": False, "message": "Invalid credentials"}, status=401)
 
-    # create tokens
-    refresh = RefreshToken.for_user(user)
-    access_token = str(refresh.access_token)
-    refresh_token = str(refresh)
-
-    # create response
-    response = JsonResponse({"ok": True})
-
-    # save access token in cookie
-    response.set_cookie(
-        key="access",
-        value=access_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        path="/",
-    )
-
-    # save refresh token in cookie
-    response.set_cookie(
-        key="refresh",
-        value=refresh_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        path="/",
-    )
-
-    return response
+    return build_auth_response(user)
 
 
 def me(request):
@@ -94,26 +71,12 @@ def me(request):
 
 @csrf_exempt
 def logout(request):
-    # allow only POST
     if request.method != "POST":
         return JsonResponse({"ok": False, "message": "POST only"}, status=405)
 
     response = JsonResponse({"ok": True})
 
-    # delete cookies
-    response.delete_cookie(
-        "access",
-        path="/",
-        samesite=COOKIE_SAMESITE,
-    )
-
-    response.delete_cookie(
-        "refresh",
-        path="/",
-        samesite=COOKIE_SAMESITE,
-    )
-
-    return response
+    return clear_auth_cookies(response)
 
 
 @csrf_exempt
@@ -151,18 +114,71 @@ def refresh(request):
     # create response object
     response = JsonResponse({"ok": True})
 
-    # store the newly issued access token in an HttpOnly cookie
-    response.set_cookie(
-        key="access",
-        value=new_access_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        path="/",
-        max_age=300,
-    )
+    return set_auth_cookies(response, new_access_token, access_max_age=300)
 
-    return response
+
+@csrf_exempt
+def google_login(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "message": "POST only"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
+
+    credential = data.get("credential")
+
+    if not credential:
+        return JsonResponse({"ok": False, "message": "Google credential is required"}, status=400)
+
+    if not settings.GOOGLE_CLIENT_ID:
+        return JsonResponse({"ok": False, "message": "Google login is not configured"}, status=500)
+
+    try:
+        request_adapter = google_requests.Request()
+        id_info = id_token.verify_oauth2_token(
+            credential,
+            request_adapter,
+            settings.GOOGLE_CLIENT_ID,
+        )
+    except ValueError:
+        return JsonResponse({"ok": False, "message": "Invalid Google token"}, status=401)
+
+    email = id_info.get("email")
+    google_sub = id_info.get("sub")
+    email_verified = id_info.get("email_verified", False)
+    name = id_info.get("name") or ""
+
+    if not email or not google_sub:
+        return JsonResponse({"ok": False, "message": "Google account information is incomplete"}, status=400)
+
+    # find user by google_sub first
+    user = User.objects.filter(google_sub=google_sub).first()
+
+    # if not found, find user by email and connect google login method
+    if not user:
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            if not user.google_sub:
+                user.google_sub = google_sub
+            user.email_verified = email_verified
+            if not user.name and name:
+                user.name = name
+            user.save()
+
+    # if still not found, create new user
+    if not user:
+        user = User.objects.create_user(
+            email=email,
+            password=None,
+            name=name or "Google User",
+            google_sub=google_sub,
+            email_verified=email_verified,
+        )
+
+    return build_auth_response(user)
 
 
 @csrf_exempt

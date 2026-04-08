@@ -5,12 +5,14 @@ import useForm from '../../hooks/useForm';
 import useOutsideClose from '../../hooks/useOutsideClose';
 import useScrollDisable from '../../hooks/useScrollDisable';
 import api from '../../api/axios';
+import { GoogleLogin } from "@react-oauth/google";
 
 const AccountForm = () => {
   const { isFormOpen, toggleForm, setCurrentUser } = useContext(commonContext);
   const { inputValues, handleInputValues } = useForm();
 
   const formRef = useRef();
+  const googleButtonRef = useRef(null);
   const [isSignupVisible, setIsSignupVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -68,6 +70,32 @@ const AccountForm = () => {
       setErrorMessage(err.response?.data?.message || 'Request failed');
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setErrorMessage('');
+
+      await api.post('/api/auth/google/', {
+        credential: credentialResponse.credential,
+      });
+
+      const me = await api.get('/api/auth/me/');
+      setCurrentUser(me.data);
+
+      toggleForm(false);
+      navigate('/');
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } catch (err) {
+      console.log(err.response?.data);
+      setErrorMessage(err.response?.data?.message || 'Google login failed');
+    }
+  };
+
+  const handleGoogleError = () => {
+      setErrorMessage('Google login failed');
+    };
 
   return (
     <>
@@ -163,9 +191,18 @@ const AccountForm = () => {
               <div className="form_foot">
                 <p>or login with</p>
                 <div className="login_options">
-                  <Link to="/">Facebook</Link>
-                  <Link to="/">Google</Link>
-                  <Link to="/">Twitter</Link>
+                  {/* <Link to="/">Facebook</Link> */}
+                  {!isSignupVisible && (
+                    <div className="google_login_wrapper">
+                      <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        locale="en"
+                        text="continue_with"
+                      />
+                    </div>
+                    )}
+                  {/* <Link to="/">Twitter</Link> */}
                 </div>
               </div>
 

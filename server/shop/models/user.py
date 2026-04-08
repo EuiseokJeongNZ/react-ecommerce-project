@@ -29,6 +29,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=20, blank=True, null=True)
     role = models.CharField(max_length=20, default="customer")
 
+    google_sub = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    email_verified = models.BooleanField(default=False)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

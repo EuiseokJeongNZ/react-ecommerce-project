@@ -70,9 +70,7 @@ const Header = () => {
                 </span>
 
                 <div className="dropdown_menu">
-                  <h4>{currentUser ? `Hello, ${currentUser.name}!` : 'Hello!'}</h4>
-
-                  <p>Access account and manage orders</p>
+                  <h4>{currentUser ? `Hello, ${currentUser.name}!` : 'Hello, please login first!'}</h4>
 
                   {authLoading ? null : !currentUser ? (
                     <button type="button" onClick={() => toggleForm(true)}>
@@ -87,7 +85,7 @@ const Header = () => {
                   <div className="separator"></div>
 
                   {!currentUser ? (
-                    <p className="dropdown_hint">Login to view profile, orders, and saved addresses.</p>
+                    <p className="dropdown_hint">Welcome to PurePro!</p>
                   ) : (
                     <ul>
                       {dropdownMenu.map((item) => {

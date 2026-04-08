@@ -103,8 +103,9 @@
 }
 
 .login_options {
-    display: grid;
-    @include grid-cols(3, 1fr, 1rem);
+    display: flex;
+    justify-content: center;
+    width: 100%;
 
     a {
         color: #fff;
@@ -128,5 +129,20 @@
             font-size: 0.8rem;
             @include padding-y(0.5rem, 0.5rem);
         }
+    }
+}
+
+.google_login_wrapper {
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    justify-content: center;
+
+    > div {
+        width: 100% !important;
+    }
+
+    iframe {
+        width: 100% !important;
     }
 }

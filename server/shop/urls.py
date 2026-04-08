@@ -11,6 +11,7 @@ urlpatterns = [
     path("auth/logout/", auth_views.logout),
     path("auth/refresh/", auth_views.refresh),
     path("auth/signup/", auth_views.signup),
+    path("auth/google/", auth_views.google_login),
     path("address/", address_views.address_list),
     path("address/<int:address_id>/", address_views.address_detail),
     path("profile/", profile_views.profile),
