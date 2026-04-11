@@ -1,4 +1,4 @@
-import json
+import json, requests
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from ..utils.auth import (
@@ -86,30 +86,48 @@ def refresh(request):
         return JsonResponse({"ok": False, "message": "POST only"}, status=405)
 
     # get refresh token from browser cookies
-    refresh_token = request.COOKIES.get("refresh")
+    credential = data.get("credential")
+    access_token = data.get("access_token")
+
+    if not credential and not access_token:
+        return JsonResponse(
+            {"ok": False, "message": "Google credential or access token is required"},
+            status=400
+        )
 
     # if no refresh token exists, user is not authenticated
     if not refresh_token:
         return JsonResponse({"ok": False, "message": "No refresh token"}, status=401)
 
     try:
-        # validate the refresh token
-        token = RefreshToken(refresh_token)
+        request_adapter = google_requests.Request()
 
-        # extract the user id from the token payload
-        user_id = token["user_id"]
+        if credential:
+            id_info = id_token.verify_oauth2_token(
+                credential,
+                request_adapter,
+                settings.GOOGLE_CLIENT_ID,
+            )
+        else:
+            response = requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=5,
+            )
 
-        # verify that the user still exists in the database
-        user = User.objects.get(id=user_id)
+            if response.status_code != 200:
+                return JsonResponse(
+                    {"ok": False, "message": "Invalid Google access token"},
+                    status=401
+                )
 
-        # generate a new access token using the refresh token
-        new_access_token = str(token.access_token)
+            id_info = response.json()
 
-    except User.DoesNotExist:
-        return JsonResponse({"ok": False, "message": "User not found"}, status=401)
-
-    except TokenError:
-        return JsonResponse({"ok": False, "message": "Invalid or expired refresh token"}, status=401)
+    except ValueError:
+        return JsonResponse({"ok": False, "message": "Invalid Google token"}, status=401)
+    except Exception as e:
+        print("google login error:", str(e))
+        return JsonResponse({"ok": False, "message": str(e)}, status=401)
 
     # create response object
     response = JsonResponse({"ok": True})
@@ -128,30 +146,69 @@ def google_login(request):
         return JsonResponse({"ok": False, "message": "Invalid JSON"}, status=400)
 
     credential = data.get("credential")
+    access_token = data.get("access_token")
 
-    if not credential:
-        return JsonResponse({"ok": False, "message": "Google credential is required"}, status=400)
+    print("google login data:", data)
+    print("credential:", credential)
+    print("access_token:", access_token)
+
+    if not credential and not access_token:
+        return JsonResponse(
+            {"ok": False, "message": "Google credential or access token is required"},
+            status=400
+        )
 
     if not settings.GOOGLE_CLIENT_ID:
         return JsonResponse({"ok": False, "message": "Google login is not configured"}, status=500)
 
     try:
         request_adapter = google_requests.Request()
-        id_info = id_token.verify_oauth2_token(
-            credential,
-            request_adapter,
-            settings.GOOGLE_CLIENT_ID,
-        )
+
+        if credential:
+            id_info = id_token.verify_oauth2_token(
+                credential,
+                request_adapter,
+                settings.GOOGLE_CLIENT_ID,
+            )
+        else:
+            response = requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=5,
+            )
+
+            print("google userinfo status:", response.status_code)
+            print("google userinfo text:", response.text)
+
+            if response.status_code != 200:
+                return JsonResponse(
+                    {"ok": False, "message": "Invalid Google access token"},
+                    status=401
+                )
+
+            id_info = response.json()
+
+        print("id_info:", id_info)
+
     except ValueError:
         return JsonResponse({"ok": False, "message": "Invalid Google token"}, status=401)
+    except Exception as e:
+        print("google login error:", str(e))
+        return JsonResponse({"ok": False, "message": str(e)}, status=401)
 
     email = id_info.get("email")
     google_sub = id_info.get("sub")
     email_verified = id_info.get("email_verified", False)
     name = id_info.get("name") or ""
 
+    print("email:", email)
+    print("google_sub:", google_sub)
+
     if not email or not google_sub:
-        return JsonResponse({"ok": False, "message": "Google account information is incomplete"}, status=400)
+        return JsonResponse(
+            {"ok": False, "message": "Google account information is incomplete"},
+            status=400
+        )
 
     # find user by google_sub first
     user = User.objects.filter(google_sub=google_sub).first()
