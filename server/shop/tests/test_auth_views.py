@@ -366,7 +366,7 @@ class AuthViewTests(TestCase):
         request = self.factory.post("/api/auth/refresh/")
 
         response = refresh(request)
-        data = json.loads(response.content)  # ADD THIS LINE
+        data = json.loads(response.content)
 
         self.assertEqual(response.status_code, 401)
         self.assertFalse(data["ok"])
