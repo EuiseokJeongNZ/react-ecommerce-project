@@ -195,7 +195,7 @@ def order_list_create(request):
             order = Order.objects.create(
                 user=user,
                 order_number=order_number,
-                status="pending",
+                status="paid", # pending paid shipped canceled refunded
                 subtotal=subtotal,
                 shipping_fee=shipping_fee,
                 discount=discount,
