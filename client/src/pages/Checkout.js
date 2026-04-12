@@ -80,7 +80,18 @@ const Checkout = () => {
 
                 {addresses.length === 0 ? (
                   <div className="checkout_empty">
-                    <EmptyView icon={<BsGeoAlt />} msg="No Saved Addresses" />
+                    <EmptyView
+                      icon={<BsGeoAlt />}
+                      msg="No saved addresses yet. Please add a delivery address."
+                    />
+
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => window.location.href = '/addresses'}
+                    >
+                      Add Address
+                    </button>
                   </div>
                 ) : (
                   <div className="checkout_address_list">
