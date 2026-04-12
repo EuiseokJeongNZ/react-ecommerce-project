@@ -381,7 +381,7 @@ class AuthViewTests(TestCase):
 
         self.assertEqual(response.status_code, 401)
         self.assertFalse(data["ok"])
-        self.assertEqual(data["message"], "Invalid or expired refresh token")
+        self.assertEqual(data["message"], "Invalid refresh token")
 
     def test_refresh_get_returns_405(self):
         request = self.factory.get("/api/auth/refresh/")

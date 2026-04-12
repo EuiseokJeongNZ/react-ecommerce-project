@@ -84,7 +84,7 @@ def refresh(request):
     if request.method != "POST":
         return JsonResponse({"ok": False, "message": "POST only"}, status=405)
 
-    refresh_token_value = request.COOKIES.get("refresh_token")
+    refresh_token_value = request.COOKIES.get("refresh")
 
     if not refresh_token_value:
         return JsonResponse({"ok": False, "message": "No refresh token"}, status=401)

@@ -335,7 +335,7 @@ class OrderViewTests(TestCase):
         order1 = Order.objects.create(
             user=user,
             order_number="PP-ORDER1",
-            status="pending",
+            status="paid", # pending paid shipped canceled refunded
             subtotal=Decimal("40.00"),
             shipping_fee=Decimal("7.00"),
             discount=Decimal("0.00"),
@@ -362,7 +362,7 @@ class OrderViewTests(TestCase):
         Order.objects.create(
             user=other_user,
             order_number="PP-ORDER2",
-            status="pending",
+            status="paid", # pending paid shipped canceled refunded
             subtotal=Decimal("10.00"),
             shipping_fee=Decimal("7.00"),
             discount=Decimal("0.00"),
