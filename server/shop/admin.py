@@ -63,7 +63,7 @@ class ProductAdmin(admin.ModelAdmin):
         "created_at",
     ]
 
-    readonly_fields = ["id", "avg_rating", "review_count", "created_at"]
+    readonly_fields = ["id", "created_at"] # "avg_rating", "review_count",
     search_fields = ["title", "brand", "category", "tagline", "info"]
     list_filter = ["tag", "category", "brand", "is_active"]
 
