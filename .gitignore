@@ -7,9 +7,10 @@ __pycache__/
 *.sqlite3
 
 # env
-.venv/
-venv/
 .env
+.env.*
+server/.env
+server/.env.*
 
 # OS
 .DS_Store
