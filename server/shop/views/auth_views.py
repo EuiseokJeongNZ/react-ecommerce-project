@@ -81,57 +81,21 @@ def logout(request):
 
 @csrf_exempt
 def refresh(request):
-    # allow only POST requests
     if request.method != "POST":
         return JsonResponse({"ok": False, "message": "POST only"}, status=405)
 
-    # get refresh token from browser cookies
-    credential = data.get("credential")
-    access_token = data.get("access_token")
+    refresh_token_value = request.COOKIES.get("refresh_token")
 
-    if not credential and not access_token:
-        return JsonResponse(
-            {"ok": False, "message": "Google credential or access token is required"},
-            status=400
-        )
-
-    # if no refresh token exists, user is not authenticated
-    if not refresh_token:
+    if not refresh_token_value:
         return JsonResponse({"ok": False, "message": "No refresh token"}, status=401)
 
     try:
-        request_adapter = google_requests.Request()
+        token = RefreshToken(refresh_token_value)
+        new_access_token = str(token.access_token)
+    except TokenError:
+        return JsonResponse({"ok": False, "message": "Invalid refresh token"}, status=401)
 
-        if credential:
-            id_info = id_token.verify_oauth2_token(
-                credential,
-                request_adapter,
-                settings.GOOGLE_CLIENT_ID,
-            )
-        else:
-            response = requests.get(
-                "https://www.googleapis.com/oauth2/v3/userinfo",
-                headers={"Authorization": f"Bearer {access_token}"},
-                timeout=5,
-            )
-
-            if response.status_code != 200:
-                return JsonResponse(
-                    {"ok": False, "message": "Invalid Google access token"},
-                    status=401
-                )
-
-            id_info = response.json()
-
-    except ValueError:
-        return JsonResponse({"ok": False, "message": "Invalid Google token"}, status=401)
-    except Exception as e:
-        print("google login error:", str(e))
-        return JsonResponse({"ok": False, "message": str(e)}, status=401)
-
-    # create response object
     response = JsonResponse({"ok": True})
-
     return set_auth_cookies(response, new_access_token, access_max_age=300)
 
 
