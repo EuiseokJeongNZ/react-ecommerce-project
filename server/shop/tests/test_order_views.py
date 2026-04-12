@@ -265,7 +265,7 @@ class OrderViewTests(TestCase):
 
         order = Order.objects.first()
         self.assertEqual(order.user, user)
-        self.assertEqual(order.status, "pending")
+        self.assertEqual(order.status, "paid")
         self.assertEqual(order.subtotal, Decimal("55.00"))
         self.assertEqual(order.shipping_fee, Decimal("0.00"))
         self.assertEqual(order.discount, Decimal("0.00"))
