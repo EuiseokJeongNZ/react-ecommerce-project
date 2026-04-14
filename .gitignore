@@ -11,6 +11,7 @@ __pycache__/
 .env.*
 server/.env
 server/.env.*
+purepro-key.pem
 
 # OS
 .DS_Store
