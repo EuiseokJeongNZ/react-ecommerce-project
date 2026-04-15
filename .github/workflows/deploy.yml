@@ -18,4 +18,4 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
           script: |
-            /home/ubuntu/react-ecommerce-project/deploy.sh
+            bash /home/ubuntu/react-ecommerce-project/deploy.sh
