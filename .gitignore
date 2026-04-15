@@ -9,6 +9,8 @@ __pycache__/
 # env
 .env
 .env.*
+client/.env
+client/.env.*
 server/.env
 server/.env.*
 purepro-key.pem
