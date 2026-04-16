@@ -101,57 +101,46 @@ Backend logic is separated by domain modules such as auth, products, addresses, 
 
 ```mermaid
 flowchart LR
-    U[User Browser]
+    USER[User Browser]
 
     subgraph FE[Frontend]
-        F1[React Dev Server<br/>localhost:3000]
-        F2[React Production<br/>Vercel / Static Hosting]
+        VERCEL[Vercel<br/>React SPA Hosting<br/>HTTPS :443]
+        REACT[React SPA<br/>Router / Context API / Axios]
     end
 
-    subgraph AWS[AWS EC2 Instance]
-        N[Nginx Reverse Proxy<br/>:80]
+    subgraph CICD[CI/CD]
+        DEV[Developer]
+        GH[GitHub Repository]
+        GHA[GitHub Actions<br/>CI / CD]
+    end
 
+    subgraph EC2[AWS EC2]
+        NGINX[Nginx Reverse Proxy<br/>:80 Redirect / :443 HTTPS]
+        
         subgraph DOCKER[Docker Runtime]
-            C[Django API + Gunicorn<br/>Container :8000]
+            DJANGO[Django + Gunicorn<br/>Container :8000]
         end
     end
 
-    subgraph API[Backend APIs]
-        A[Auth API<br/>/api/auth/*]
-        P[Product API<br/>/api/products/*]
-        O[Order API<br/>/api/orders/*]
-        R[Review API<br/>/api/reviews/*]
-        AD[Address API<br/>/api/address/*]
-        PF[Profile API<br/>/api/profile/*]
+    subgraph DATA[Data / Storage]
+        RDS[(Amazon RDS PostgreSQL<br/>:5432)]
+        REDIS[(Redis / Valkey<br/>:6379 optional)]
+        S3[(Amazon S3<br/>Media Storage<br/>HTTPS :443)]
     end
 
-    DB[(PostgreSQL<br/>:5432 typical)]
-    RE[Redis Cache<br/>:6379 optional]
-    S3[AWS S3<br/>Media Storage]
+    USER -->|Open Web App| VERCEL
+    VERCEL --> REACT
+    REACT -->|API Request<br/>withCredentials| NGINX
+    NGINX -->|proxy_pass<br/>127.0.0.1:8000| DJANGO
 
-    GH[GitHub Repository]
-    GA[GitHub Actions CI/CD]
+    DJANGO -->|JWT Auth<br/>HttpOnly Cookies<br/> access / refresh| USER
+    DJANGO --> RDS
+    DJANGO --> REDIS
+    DJANGO --> S3
 
-    U -->|Local Development| F1
-    F1 -->|API request<br/>localhost:8000| C
-
-    U -->|Production Access| F2
-    F2 -->|API request withCredentials| N
-    N -->|proxy_pass| C
-
-    C --> A
-    C --> P
-    C --> O
-    C --> R
-    C --> AD
-    C --> PF
-
-    C --> DB
-    C --> RE
-    C --> S3
-
-    GH --> GA
-    GA -->|SSH Deploy| AWS
+    DEV --> GH
+    GH --> GHA
+    GHA -->|SSH :22 Deploy| EC2
 ```
 
 ### Architecture Summary
