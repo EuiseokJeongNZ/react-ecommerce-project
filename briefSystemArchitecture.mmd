@@ -1,0 +1,41 @@
+flowchart LR
+    USER[User Browser]
+
+    subgraph FE[Frontend]
+        VERCEL[Vercel<br/>React SPA Hosting<br/>HTTPS :443]
+        REACT[React SPA<br/>Router / Context API / Axios]
+    end
+
+    subgraph CICD[CI/CD]
+        DEV[Developer]
+        GH[GitHub Repository]
+        GHA[GitHub Actions<br/>CI / CD]
+    end
+
+    subgraph EC2[AWS EC2]
+        NGINX[Nginx Reverse Proxy<br/>:80 Redirect / :443 HTTPS]
+        
+        subgraph DOCKER[Docker Runtime]
+            DJANGO[Django + Gunicorn<br/>Container :8000]
+        end
+    end
+
+    subgraph DATA[Data / Storage]
+        RDS[(Amazon RDS PostgreSQL<br/>:5432)]
+        REDIS[(Redis / Valkey<br/>:6379 optional)]
+        S3[(Amazon S3<br/>Media Storage<br/>HTTPS :443)]
+    end
+
+    USER -->|Open Web App| VERCEL
+    VERCEL --> REACT
+    REACT -->|API Request<br/>withCredentials| NGINX
+    NGINX -->|proxy_pass<br/>127.0.0.1:8000| DJANGO
+
+    DJANGO -->|JWT Auth<br/>HttpOnly Cookies<br/> access / refresh| USER
+    DJANGO --> RDS
+    DJANGO --> REDIS
+    DJANGO --> S3
+
+    DEV --> GH
+    GH --> GHA
+    GHA -->|SSH :22 Deploy| EC2

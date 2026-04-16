@@ -1,30 +1,65 @@
 flowchart LR
-    DEV[Developer] -->|Code / Commit / Push| GH[GitHub Repository]
+    DEV[Developer]
+    USER[User Browser]
 
-    GH -->|Trigger on Push / PR| CI[GitHub Actions CI<br/>Frontend Build · Backend Validation]
-    CI -->|Checks Passed| MAIN[Main Branch]
+    DEV -->|Code / Commit / Push| GH[GitHub Repository]
 
-    MAIN -->|Frontend CD| VERCEL[Vercel<br/>React Frontend Hosting]
-    MAIN -->|Backend CD| RENDER[Render<br/>Django Backend Hosting]
+    subgraph GHA[GitHub Actions]
+        CI[CI Pipeline<br/>Frontend Build<br/>Backend Validation / Test]
+        CD[CD Pipeline<br/>SSH Deploy to EC2]
+    end
 
-    GH -.contains.-> DOCKER[Dockerfile<br/>Backend Container Definition]
-    DOCKER -.used by.-> RENDER
+    GH -->|Push / PR| CI
+    GH -->|Push to main| CD
+    GH -->|Git Integration| VERCEL[Vercel<br/>React SPA Hosting]
 
-    USER[User Browser] -->|Open Web App| VERCEL
+    CD -->|SSH :22| EC2HOST[EC2 Ubuntu Server]
+
+    subgraph EC2BOX[EC2 Runtime]
+        DEPLOY[deploy.sh<br/>git fetch / reset --hard<br/>docker build<br/>docker rm<br/>docker run]
+        NGINX[Nginx Reverse Proxy<br/>:80 Redirect / :443 HTTPS<br/>SSL Termination]
+
+        subgraph DOCKER[Docker Runtime]
+            APP[Django + Gunicorn Container<br/>:8000]
+        end
+    end
+
+    EC2HOST --> DEPLOY
+    DEPLOY --> APP
+
+    USER -->|Open Web App<br/>HTTPS :443| VERCEL
     VERCEL --> FE[React SPA]
 
-    FE --> STATE[Context API / Reducer<br/>Auth · Cart · Filters]
-    FE --> AXIOS[Axios Instance<br/>withCredentials · Refresh Interceptor]
+    subgraph FRONT[Frontend Runtime]
+        STATE[Context API / Reducer<br/>Auth / Cart / Filters]
+        AXIOS[Axios Instance<br/>withCredentials: true<br/>401 → refresh → retry]
+        ROUTER[React Router]
+    end
 
-    AXIOS -->|HTTPS API Requests| RENDER
-    RENDER --> BE[Django API Server]
+    FE --> ROUTER
+    FE --> STATE
+    FE --> AXIOS
 
-    BE --> AUTH[JWT Authentication<br/>HttpOnly Access / Refresh Cookies]
-    BE --> API[Domain APIs<br/>Auth · Products · Address · Orders · Reviews]
-    BE --> ORM[Django ORM]
+    AXIOS -->|HTTPS API Request :443| DOMAIN[purepro-api.duckdns.org]
+    DOMAIN --> NGINX
+    NGINX -->|proxy_pass<br/>127.0.0.1:8000| APP
 
-    ORM --> DB[(SQLite for Local Dev<br/>PostgreSQL-ready for Production)]
-    BE --> MEDIA[Media Storage<br/>AWS S3 in Production]
+    subgraph BACK[Backend Runtime]
+        AUTH[JWT Authentication<br/>HttpOnly Cookies<br/>access / refresh]
+        API[Domain APIs<br/>/api/auth/*<br/>/api/products/*<br/>/api/address/*<br/>/api/orders/*<br/>/api/reviews/*<br/>/api/profile/*]
+        ORM[Django ORM]
+    end
 
-    BE -->|Set Cookies| USER
+    APP --> AUTH
+    APP --> API
+    APP --> ORM
+
+    ORM --> RDS[(Amazon RDS PostgreSQL<br/>:5432)]
+    APP --> REDIS[(Redis / Valkey<br/>:6379 optional)]
+    APP --> S3[(Amazon S3<br/>Media Storage<br/>HTTPS :443)]
+
+    APP -->|Set-Cookie in Response| USER
     USER -->|Auto-send Cookies| AXIOS
+
+    GH -.contains.-> DOCKERFILE[Dockerfile<br/>Backend Container Definition]
+    DOCKERFILE -.used by.-> DEPLOY
