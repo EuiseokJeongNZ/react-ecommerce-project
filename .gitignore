@@ -12,6 +12,7 @@ __pycache__/
 server/.env
 server/.env.*
 purepro-key.pem
+github-recovery-codes.txt
 
 # OS
 .DS_Store
